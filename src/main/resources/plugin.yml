@@ -1,0 +1,11 @@
+name: ProSkillAPIParties
+main: com.sucy.party.Parties
+version: 1.0-snapshot
+api-version: 1.13
+authors: [Eniripsa96, Sentropic]
+depend: [ProSkillAPI]
+softdepend: [Instances]
+
+permissions:
+  party.general:
+    default: true
