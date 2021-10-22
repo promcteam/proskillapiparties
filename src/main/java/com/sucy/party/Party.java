@@ -1,5 +1,8 @@
 package com.sucy.party;
 
+import com.sucy.party.event.PartyExpEvent;
+import com.sucy.party.event.PlayerJoinPartyEvent;
+import com.sucy.party.event.PlayerLeavePartyEvent;
 import com.sucy.party.inject.Server;
 import com.sucy.party.lang.IndividualNodes;
 import com.sucy.party.lang.PartyNodes;
@@ -8,6 +11,7 @@ import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.player.PlayerClass;
 import com.sucy.skill.api.player.PlayerData;
 import mc.promcteam.engine.mccore.config.Filter;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -183,6 +187,11 @@ public class Party implements IParty {
     public void accept(Player player) {
         if (invitations.containsKey(player.getName())) {
             invitations.remove(player.getName());
+
+            PlayerJoinPartyEvent event = new PlayerJoinPartyEvent(this, player);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) { return; }
+
             members.add(player.getName());
             if (members.size() == 2) { PartyBoardManager.applyBoard(plugin, getLeader()); }
             PartyBoardManager.applyBoard(plugin, player);
@@ -207,6 +216,7 @@ public class Party implements IParty {
             changeLeader();
         }
         PartyBoardManager.clearBoard(plugin, player);
+        Bukkit.getPluginManager().callEvent(new PlayerLeavePartyEvent(this, player));
     }
 
     /**
@@ -269,6 +279,9 @@ public class Party implements IParty {
                 info.giveExp(exp, expSource);
             }
         }
+
+        // Call event
+        Bukkit.getPluginManager().callEvent(new PartyExpEvent(source, amount, expSource));
     }
 
     /**

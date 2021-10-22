@@ -16,6 +16,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,6 +25,7 @@ import java.util.List;
 public class Parties extends JavaPlugin {
 
     private final ArrayList<Party> parties = new ArrayList<>();
+    private final List<Party> partiesRead = Collections.unmodifiableList(parties);
     private final ArrayList<String> toggled = new ArrayList<>();
     private CommentedLanguageConfig language;
     private UpdateTask task;
@@ -203,6 +205,13 @@ public class Parties extends JavaPlugin {
             }
         }
         return null;
+    }
+
+    /**
+     * @return an unmodifiable list containing all the existing parties
+     */
+    public List<Party> getParties() {
+        return partiesRead;
     }
 
     /**

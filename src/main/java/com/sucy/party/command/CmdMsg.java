@@ -2,9 +2,11 @@ package com.sucy.party.command;
 
 import com.sucy.party.Parties;
 import com.sucy.party.Party;
+import com.sucy.party.event.PartyMsgEvent;
 import com.sucy.party.lang.ErrorNodes;
 import mc.promcteam.engine.mccore.commands.ConfigurableCommand;
 import mc.promcteam.engine.mccore.commands.IFunction;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -41,7 +43,12 @@ public class CmdMsg implements IFunction {
             for (int i = 1; i < args.length; i++) {
                 text.append(" ").append(args[i]);
             }
-            party.sendMessage(player, text.toString());
+            String message = text.toString();
+            PartyMsgEvent event = new PartyMsgEvent(party, player, message);
+            Bukkit.getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                party.sendMessage(player, message);
+            }
         }
 
         // Not in a party
