@@ -46,7 +46,7 @@ public class Hooks {
     public static IParty getParty(Player player) {
         IParty party = null;
         if (isInstancesActive()) { party = InstancesHook.getParty(player); }
-        if (party == null) { parties.getJoinedParty(player); }
+        if (party == null) { party = parties.getJoinedParty(player); }
         return party;
     }
 
