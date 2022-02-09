@@ -21,6 +21,9 @@ use-scoreboard: false
 # can invite new members
 only-leader-invites: true
 
+# Whether levels are shown in the scoreboard over health
+level-scoreboard: false
+
 # Modifications to experience gained
 exp-modifications:
 
@@ -36,3 +39,14 @@ exp-modifications:
   # (0 - 0.01 is a good range)
   # 0 -> No change in experience
   level: 0.0
+
+# The type of item sharing to use
+# none -> Disables item sharing
+# sequential -> Members of the party take turns getting items, in a per-unit basis
+# random -> Each picked up item unit is granted to a random party member
+# sequential-stack -> Members of the party take turns getting items, in a per-stack basis
+# random-stack -> Each picked up item stack is granted to a random party member
+sharing: none
+
+# Whether debug messages are enabled
+debug-messages: false
