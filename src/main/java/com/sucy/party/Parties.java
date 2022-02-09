@@ -48,6 +48,28 @@ public class Parties extends JavaPlugin {
     public void onEnable() {
         task = new UpdateTask(this);
 
+        loadConfiguration();
+
+        new PartyListener(this);
+
+        // Set up commands
+        ConfigurableCommand root = new ConfigurableCommand(this, "pt", SenderType.ANYONE);
+        root.addSubCommands(
+                new ConfigurableCommand(this, "accept", SenderType.PLAYER_ONLY, new CmdAccept(), "Accepts a party request", "", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "decline", SenderType.PLAYER_ONLY, new CmdDecline(), "Declines a party request", "", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "info", SenderType.PLAYER_ONLY, new CmdInfo(), "Views party information", "", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "invite", SenderType.PLAYER_ONLY, new CmdInvite(), "Invites a player to a party", "<player>", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "leave", SenderType.PLAYER_ONLY, new CmdLeave(), "Leaves your party", "", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "message", SenderType.PLAYER_ONLY, new CmdMsg(), "Sends a message to your party", "<message>", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "toggle", SenderType.PLAYER_ONLY, new CmdToggle(), "Toggles party chat on/off", "", PermissionNode.GENERAL),
+                new ConfigurableCommand(this, "reload", SenderType.ANYONE, new CmdReload(), "Reloads the plugin's config.yml and language.yml", "", PermissionNode.RELOAD)
+                           );
+        CommandManager.registerCommand(root);
+
+        Hooks.init(this);
+    }
+
+    public void loadConfiguration() {
         CommentedConfig config = new CommentedConfig(this, "config");
         config.saveDefaultConfig();
         config.trim();
@@ -68,23 +90,6 @@ public class Parties extends JavaPlugin {
         inviteTimeout = settings.getInt("invite-timeout")*1000L;
         maxSize = settings.getInt("max-size");
         debug = settings.getBoolean("debug-messages");
-
-        new PartyListener(this);
-
-        // Set up commands
-        ConfigurableCommand root = new ConfigurableCommand(this, "pt", SenderType.ANYONE);
-        root.addSubCommands(
-                new ConfigurableCommand(this, "accept", SenderType.PLAYER_ONLY, new CmdAccept(), "Accepts a party request", "", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "decline", SenderType.PLAYER_ONLY, new CmdDecline(), "Declines a party request", "", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "info", SenderType.PLAYER_ONLY, new CmdInfo(), "Views party information", "", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "invite", SenderType.PLAYER_ONLY, new CmdInvite(), "Invites a player to a party", "<player>", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "leave", SenderType.PLAYER_ONLY, new CmdLeave(), "Leaves your party", "", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "message", SenderType.PLAYER_ONLY, new CmdMsg(), "Sends a message to your party", "<message>", PermissionNode.GENERAL),
-                new ConfigurableCommand(this, "toggle", SenderType.PLAYER_ONLY, new CmdToggle(), "Toggles party chat on/off", "", PermissionNode.GENERAL)
-                           );
-        CommandManager.registerCommand(root);
-
-        Hooks.init(this);
     }
 
     /**

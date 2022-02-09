@@ -10,5 +10,10 @@ public class PermissionNode {
             /**
              * General permission for parties
              */
-            GENERAL = "party.general";
+            GENERAL = "party.general",
+
+            /**
+            * Permission for the /pt reload command
+            */
+            RELOAD = "party.reload";
 }
