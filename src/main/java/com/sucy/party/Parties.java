@@ -79,7 +79,7 @@ public class Parties extends JavaPlugin {
 
         language = new CommentedLanguageConfig(this, "language");
 
-        sharing = settings.getString("item-sharing", "none");
+        sharing = settings.getString("sharing", "none");
         removeOnDc = settings.getBoolean("remove-on-dc", false);
         newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
         leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
