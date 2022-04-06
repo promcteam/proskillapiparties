@@ -79,17 +79,17 @@ public class Parties extends JavaPlugin {
 
         language = new CommentedLanguageConfig(this, "language");
 
-        sharing = settings.getString("item-sharing");
-        removeOnDc = settings.getBoolean("remove-on-dc");
-        newLeaderOnDc = settings.getBoolean("new-leader-on-dc");
-        leaderInviteOnly = settings.getBoolean("only-leader-invites");
-        useScoreboard = settings.getBoolean("use-scoreboard");
-        levelScoreboard = settings.getBoolean("level-scoreboard");
-        memberModifier = settings.getDouble("exp-modifications.members");
-        levelModifier = settings.getDouble("exp-modifications.level");
-        inviteTimeout = settings.getInt("invite-timeout")*1000L;
-        maxSize = settings.getInt("max-size");
-        debug = settings.getBoolean("debug-messages");
+        sharing = settings.getString("item-sharing", "none");
+        removeOnDc = settings.getBoolean("remove-on-dc", false);
+        newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
+        leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
+        useScoreboard = settings.getBoolean("use-scoreboard", false);
+        levelScoreboard = settings.getBoolean("level-scoreboard", false);
+        memberModifier = settings.getDouble("exp-modifications.members", 1.0);
+        levelModifier = settings.getDouble("exp-modifications.level", 0.0);
+        inviteTimeout = settings.getInt("invite-timeout", 30)*1000L;
+        maxSize = settings.getInt("max-size", 4);
+        debug = settings.getBoolean("debug-messages", false);
     }
 
     /**
