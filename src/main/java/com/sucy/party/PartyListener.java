@@ -134,31 +134,21 @@ public class PartyListener implements Listener {
      */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        Party party = plugin.getParty(player);
+        if (party == null) { return; }
 
-        // The player must be in a party
-        Party party = plugin.getParty(event.getPlayer());
-        if (party != null) {
+        // Decline invitations on quit
+        if (party.isInvited(player)) { party.decline(player); }
 
-            // Decline invitations on quit
-            if (party.isInvited(event.getPlayer())) {
-                party.decline(event.getPlayer());
-            }
+        // Removing players on disconnect
+        else if (plugin.isRemoveOnDc()) { party.removeMember(player); }
 
-            // Removing players on disconnect
-            else if (plugin.isRemoveOnDc()) {
-                party.removeMember(event.getPlayer());
-            }
+        // Changing leader on disconnect
+        else if (plugin.isNewLeaderOnDc() && party.isLeader(player)) { party.changeLeader(); }
 
-            // Changing leader on disconnect
-            else if (plugin.isNewLeaderOnDc()) {
-                party.changeLeader();
-            }
-
-            // Removes a party when it's online size reaches 0
-            if (party.getOnlinePartySize() == 0) {
-                plugin.removeParty(party);
-            }
-        }
+        // Removes a party when it's online size reaches 0
+        if (party.getOnlinePartySize() == 0) { plugin.removeParty(party); }
     }
 
     /**
