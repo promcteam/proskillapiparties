@@ -36,6 +36,7 @@ public class Parties extends JavaPlugin {
     private boolean useScoreboard;
     private boolean levelScoreboard;
     private boolean debug;
+    private double expShareRadiusSq;
     private double memberModifier;
     private double levelModifier;
     private long inviteTimeout;
@@ -79,12 +80,14 @@ public class Parties extends JavaPlugin {
 
         language = new CommentedLanguageConfig(this, "language");
 
-        sharing = settings.getString("sharing", "none");
+        sharing = settings.getString("sharing.type", "none");
         removeOnDc = settings.getBoolean("remove-on-dc", false);
         newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
         leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
         useScoreboard = settings.getBoolean("use-scoreboard", false);
         levelScoreboard = settings.getBoolean("level-scoreboard", false);
+        expShareRadiusSq = settings.getDouble("exp-modifications.radius", 30);
+        if (expShareRadiusSq > 0) { expShareRadiusSq *= expShareRadiusSq; }
         memberModifier = settings.getDouble("exp-modifications.members", 1.0);
         levelModifier = settings.getDouble("exp-modifications.level", 0.0);
         inviteTimeout = settings.getInt("invite-timeout", 30)*1000L;
@@ -158,6 +161,11 @@ public class Parties extends JavaPlugin {
     public int getMaxSize() {
         return maxSize;
     }
+
+    /**
+     * @return the squared maximum distance between party members for the exp sharing to take effect, in blocks
+     */
+    public double getExpShareRadiusSquared() { return expShareRadiusSq; }
 
     /**
      * @return the value for the member experience modifier

@@ -27,6 +27,10 @@ level-scoreboard: false
 # Modifications to experience gained
 exp-modifications:
 
+  # Maximum distance between party members for the exp sharing to take effect, in blocks
+  # Set to 0 to disable exp sharing, or -1 to enable regardless of distance
+  radius: 0
+
   # Modifier for the number of members
   # normally ranging from 0 to 1
   # 0 -> Full experience for all members

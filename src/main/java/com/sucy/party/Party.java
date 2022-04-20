@@ -251,9 +251,8 @@ public class Party implements IParty {
      * @param expSource the source type of the gained experience
      */
     public void giveExp(Player source, double amount, ExpSource expSource) {
-        if (getOnlinePartySize() == 0) {
-            return;
-        }
+        if (getOnlinePartySize() == 0) { return; }
+        double radiusSq = plugin.getExpShareRadiusSquared();
 
         // Member modifier
         double baseAmount = amount/(1+(getOnlinePartySize()-1)*plugin.getMemberModifier());
@@ -261,23 +260,21 @@ public class Party implements IParty {
 
         // Grant exp to all members
         for (String member : members) {
-
-            // Player must be online
             Player player = Server.getPlayer(member);
-            if (player != null) {
-                PlayerData info = Server.getPlayerData(player);
-                PlayerClass main = info.getMainClass();
-                int lvl = main == null ? 0 : main.getLevel();
-                int exp = (int) Math.ceil(baseAmount);
+            if (player == null) { continue; }
+            if (radiusSq >= 0 && (!player.getWorld().equals(source.getWorld()) || player.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
+            PlayerData info = Server.getPlayerData(player);
+            PlayerClass main = info.getMainClass();
+            int lvl = main == null ? 0 : main.getLevel();
+            int exp = (int) Math.ceil(baseAmount);
 
-                // Level modifier
-                if (plugin.getLevelModifier() > 0) {
-                    int dl = lvl-level;
-                    exp = (int) Math.ceil(baseAmount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
-                }
-
-                info.giveExp(exp, expSource);
+            // Level modifier
+            if (plugin.getLevelModifier() > 0) {
+                int dl = lvl-level;
+                exp = (int) Math.ceil(baseAmount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
             }
+
+            info.giveExp(exp, expSource);
         }
 
         // Call event
