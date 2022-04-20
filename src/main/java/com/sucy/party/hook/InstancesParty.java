@@ -28,15 +28,19 @@ package com.sucy.party.hook;
 
 import com.sucy.party.IParty;
 import com.sucy.party.Parties;
+import com.sucy.party.inject.Server;
 import com.sucy.party.lang.PartyNodes;
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.player.PlayerClass;
 import com.sucy.skill.api.player.PlayerData;
 import mc.promcteam.engine.mccore.config.Filter;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.cyberiantiger.minecraft.instances.Party;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InstancesParty implements IParty {
@@ -60,15 +64,57 @@ public class InstancesParty implements IParty {
         return party.getMembers().get(nextId);
     }
 
+    /**
+     * Gets the next member that is within a sphere, in a sequential order
+     *
+     * @param location center of the sphere
+     * @param radius radius of the sphere
+     * @return the next player within the sphere, or null if none was found
+     */
+    @Override
+    @Nullable
+    public Player getSequentialPlayer(Location location, double radius) {
+        radius *= radius;
+        int size = party.getMembers().size();
+        for (int i = 0; i < size; i++) {
+            nextId = (nextId+1)%party.getMembers().size();
+            Player player = party.getMembers().get(nextId);
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            return player;
+        }
+        return null;
+    }
+
     @Override
     public Player getRandomPlayer() {
         return party.getMembers().get((int) (party.getMembers().size()*Math.random()));
     }
 
+    /**
+     * Gets a random member that is within a sphere, in a sequential order
+     *
+     * @param location center of the sphere
+     * @param radius radius of the sphere
+     * @return random member within the sphere, or null if none was found
+     */
+    @Override
+    @Nullable
+    public Player getRandomPlayer(Location location, double radius) {
+        radius *= radius;
+        List<Player> members = new ArrayList<>(party.getMembers());
+        int size = party.getMembers().size();
+        for (int i = 0; i < size; i++) {
+            Player player = members.remove(Parties.RNG.nextInt(members.size()));
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            return player;
+        }
+        return null;
+    }
+
     @Override
     public void giveExp(Player source, double amount, ExpSource expSource) {
         if (isEmpty()) { return; }
-
+        double radiusSq = plugin.getExpShareRadiusSquared();
         // Member modifier
         double baseAmount = amount/(1+(party.getMembers().size()-1)*plugin.getMemberModifier());
         PlayerData data = SkillAPI.getPlayerData(source);
@@ -77,7 +123,7 @@ public class InstancesParty implements IParty {
 
         // Grant exp to all members
         for (Player member : party.getMembers()) {
-
+            if (radiusSq >= 0 && (!member.getWorld().equals(source.getWorld()) || member.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
             // Player must be online
             PlayerData info = SkillAPI.getPlayerData(member);
             main = info.getMainClass();

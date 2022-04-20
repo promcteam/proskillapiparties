@@ -5,6 +5,7 @@ import com.sucy.party.mccore.PartyBoardManager;
 import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.event.PlayerExperienceGainEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.data.type.TNT;
 import org.bukkit.entity.*;
@@ -174,6 +175,7 @@ public class PartyListener implements Listener {
     public void onPickup(EntityPickupItemEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Player)) { return; }
+        Player player = (Player) entity;
         IParty party = Hooks.getParty((Player) entity);
         if (party == null) { return; }
 
@@ -182,12 +184,16 @@ public class PartyListener implements Listener {
         PersistentDataContainer nbt = itemStack.getItemMeta().getPersistentDataContainer();
         boolean sharable = !nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) || nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE).byteValue() == 0;
         if (sharable) {String mode = plugin.getShareMode().toLowerCase();
+            Location location = player.getLocation();
+            double radius = plugin.getItemShareRadius();
             switch (mode) {
                 case "sequential": {
                     int count = itemStack.getAmount();
                     itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
-                        party.getSequentialPlayer().getInventory().addItem(itemStack);
+                        Player receiver = party.getSequentialPlayer(location, radius);
+                        if (receiver == null) { receiver = player; }
+                        receiver.getInventory().addItem(itemStack);
                     }
                     break;
                 }
@@ -195,16 +201,24 @@ public class PartyListener implements Listener {
                     int count = itemStack.getAmount();
                     itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
-                        party.getRandomPlayer().getInventory().addItem(itemStack);
+                        Player receiver = party.getRandomPlayer(location, radius);
+                        if (receiver == null) { receiver = player; }
+                        receiver.getInventory().addItem(itemStack);
                     }
                     break;
                 }
-                case "sequential-stack":
-                    party.getSequentialPlayer().getInventory().addItem(itemStack);
+                case "sequential-stack": {
+                    Player receiver = party.getSequentialPlayer(location, radius);
+                    if (receiver == null) { receiver = player; }
+                    receiver.getInventory().addItem(itemStack);
                     break;
-                case "random-stack":
-                    party.getRandomPlayer().getInventory().addItem(itemStack);
+                }
+                case "random-stack": {
+                    Player receiver = party.getRandomPlayer(location, radius);
+                    if (receiver == null) { receiver = player; }
+                    receiver.getInventory().addItem(itemStack);
                     break;
+                }
                 default: return;
             }
             event.setCancelled(true);

@@ -12,17 +12,16 @@ import com.sucy.skill.api.player.PlayerClass;
 import com.sucy.skill.api.player.PlayerData;
 import mc.promcteam.engine.mccore.config.Filter;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Data for a party
  */
 public class Party implements IParty {
-
     private final ArrayList<String> members = new ArrayList<>();
     private final HashMap<String,Long> invitations = new HashMap<>();
     private final Parties plugin;
@@ -81,6 +80,28 @@ public class Party implements IParty {
     }
 
     /**
+     * Gets the next member that is within a sphere, in a sequential order
+     *
+     * @param location center of the sphere
+     * @param radius radius of the sphere
+     * @return the next player within the sphere, or null if none was found
+     */
+    @Override
+    @Nullable
+    public Player getSequentialPlayer(Location location, double radius) {
+        radius *= radius;
+        int size = members.size();
+        for (int i = 0; i < size; i++) {
+            nextId = (nextId+1)%size;
+            Player player = Server.getPlayer(members.get(nextId));
+            if (player == null) { continue; }
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            return player;
+        }
+        return null;
+    }
+
+    /**
      * Gets a random player in the party
      *
      * @return random player in the party
@@ -88,11 +109,31 @@ public class Party implements IParty {
     public Player getRandomPlayer() {
         Player member;
         do {
-            int id = (int) (Math.random()*members.size());
-            member = Server.getPlayer(members.get(id));
-        }
-        while (member == null);
+            member = Server.getPlayer(members.get(Parties.RNG.nextInt(members.size())));
+        } while (member == null);
         return member;
+    }
+
+    /**
+     * Gets a random member that is within a sphere, in a sequential order
+     *
+     * @param location center of the sphere
+     * @param radius radius of the sphere
+     * @return random member within the sphere, or null if none was found
+     */
+    @Override
+    @Nullable
+    public Player getRandomPlayer(Location location, double radius) {
+        radius *= radius;
+        List<String> members = new ArrayList<>(this.members);
+        int size = this.members.size();
+        for (int i = 0; i < size; i++) {
+            Player player = Server.getPlayer(members.remove(Parties.RNG.nextInt(members.size())));
+            if (player == null) { continue; }
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            return player;
+        }
+        return null;
     }
 
     /**

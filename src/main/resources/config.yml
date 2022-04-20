@@ -57,12 +57,9 @@ sharing:
   # random-stack -> Each picked up item stack is granted to a random party member
   type: none
 
-  # Whether to interpret the material-list as a whitelist.
-  # If true, only the listed materials will be affected by sharing
-  # If false, all materials except the listed ones will be affected by sharing
-  whitelist: true
-
-  material-list: []
+  # Maximum distance between party members for the item sharing to take effect, in blocks
+  # Set to -1 to enable regardless of distance
+  radius: 0
 
 # Whether debug messages are enabled
 debug-messages: false

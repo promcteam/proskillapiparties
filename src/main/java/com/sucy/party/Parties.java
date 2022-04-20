@@ -18,11 +18,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Add-on plugin for SkillAPI allowing parties with shared experience
  */
 public class Parties extends JavaPlugin {
+    public static final Random RNG = new Random();
 
     private final ArrayList<Party> parties = new ArrayList<>();
     private final List<Party> partiesRead = Collections.unmodifiableList(parties);
@@ -30,6 +32,7 @@ public class Parties extends JavaPlugin {
     private CommentedLanguageConfig language;
     private UpdateTask task;
     private String sharing;
+    private double itemShareRadius;
     private boolean removeOnDc;
     private boolean newLeaderOnDc;
     private boolean leaderInviteOnly;
@@ -82,13 +85,14 @@ public class Parties extends JavaPlugin {
         language = new CommentedLanguageConfig(this, "language");
 
         sharing = settings.getString("sharing.type", "none");
+        itemShareRadius = settings.getDouble("sharing.radius", 0);
         removeOnDc = settings.getBoolean("remove-on-dc", false);
         newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
         leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
         friendlyFire = settings.getBoolean("friendly-fire", true);
         useScoreboard = settings.getBoolean("use-scoreboard", false);
         levelScoreboard = settings.getBoolean("level-scoreboard", false);
-        expShareRadiusSq = settings.getDouble("exp-modifications.radius", 30);
+        expShareRadiusSq = settings.getDouble("exp-modifications.radius", 0);
         if (expShareRadiusSq > 0) { expShareRadiusSq *= expShareRadiusSq; }
         memberModifier = settings.getDouble("exp-modifications.members", 1.0);
         levelModifier = settings.getDouble("exp-modifications.level", 0.0);
@@ -114,6 +118,11 @@ public class Parties extends JavaPlugin {
     public String getShareMode() {
         return sharing;
     }
+
+    /**
+     * @return the maximum distance between party members for the item sharing to take effect, in blocks
+     */
+    public double getItemShareRadius() { return itemShareRadius; }
 
     /**
      * @return whether party members are removed upon disconnect

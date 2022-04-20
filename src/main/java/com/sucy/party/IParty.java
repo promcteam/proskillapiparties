@@ -27,12 +27,17 @@
 package com.sucy.party;
 
 import com.sucy.skill.api.enums.ExpSource;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public interface IParty {
     Player getSequentialPlayer();
 
+    Player getSequentialPlayer(Location location, double radius);
+
     Player getRandomPlayer();
+
+    Player getRandomPlayer(Location location, double radius);
 
     void giveExp(Player source, double amount, ExpSource expSource);
 
