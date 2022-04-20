@@ -4,18 +4,28 @@ import com.sucy.party.hook.Hooks;
 import com.sucy.party.mccore.PartyBoardManager;
 import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.event.PlayerExperienceGainEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Listener for party mechanics
@@ -24,6 +34,7 @@ public class PartyListener implements Listener {
 
     private final Parties plugin;
     private boolean shared = false;
+    private NamespacedKey SHARE_LOCK_METADATA;
 
     /**
      * Constructor
@@ -32,6 +43,7 @@ public class PartyListener implements Listener {
      */
     public PartyListener(Parties plugin) {
         this.plugin = plugin;
+        SHARE_LOCK_METADATA = new NamespacedKey(plugin, "share_lock");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -151,48 +163,92 @@ public class PartyListener implements Listener {
         if (party.getOnlinePartySize() == 0) { plugin.removeParty(party); }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDrop(PlayerDropItemEvent event) {
+        Item item = event.getItemDrop();
+        ItemStack itemStack = item.getItemStack();
+        shareLockItem(itemStack);
+        item.setItemStack(itemStack);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockDrop(BlockDropItemEvent event) {
+        for (Item item : event.getItems()) {
+            ItemStack itemStack = item.getItemStack();
+            shareLockItem(itemStack);
+            item.setItemStack(itemStack);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockDispense(BlockDispenseEvent event) {
+        ItemStack itemStack = event.getItem();
+        shareLockItem(itemStack);
+        event.setItem(itemStack);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onPlayerDeath(PlayerDeathEvent event) { for (ItemStack drop : event.getDrops()) { shareLockItem(drop); } }
+
+    private void shareLockItem(ItemStack itemStack) {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
+        itemStack.setItemMeta(itemMeta);
+    }
+
+    private void shareUnlockItem(ItemStack itemStack) {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.getPersistentDataContainer().remove(SHARE_LOCK_METADATA);
+        itemStack.setItemMeta(itemMeta);
+    }
+
     /**
      * Handles item distribution to a party
      *
      * @param event event details
      */
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickup(EntityPickupItemEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Player)) { return; }
         IParty party = Hooks.getParty((Player) entity);
-        if (party != null) {
-            ItemStack item = event.getItem().getItemStack();
+        if (party == null) { return; }
 
-            String mode = plugin.getShareMode().toLowerCase();
+        Item item = event.getItem();
+        ItemStack itemStack = item.getItemStack();
+        PersistentDataContainer nbt = itemStack.getItemMeta().getPersistentDataContainer();
+        boolean sharable = !nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) || nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE).byteValue() == 0;
+        if (sharable) {String mode = plugin.getShareMode().toLowerCase();
             switch (mode) {
                 case "sequential": {
-                    int count = item.getAmount();
-                    item.setAmount(1);
+                    int count = itemStack.getAmount();
+                    itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
-                        party.getSequentialPlayer().getInventory().addItem(item);
+                        party.getSequentialPlayer().getInventory().addItem(itemStack);
                     }
                     break;
                 }
                 case "random": {
-                    int count = item.getAmount();
-                    item.setAmount(1);
+                    int count = itemStack.getAmount();
+                    itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
-                        party.getRandomPlayer().getInventory().addItem(item);
+                        party.getRandomPlayer().getInventory().addItem(itemStack);
                     }
                     break;
                 }
                 case "sequential-stack":
-                    party.getSequentialPlayer().getInventory().addItem(item);
+                    party.getSequentialPlayer().getInventory().addItem(itemStack);
                     break;
                 case "random-stack":
-                    party.getRandomPlayer().getInventory().addItem(item);
+                    party.getRandomPlayer().getInventory().addItem(itemStack);
                     break;
                 default: return;
             }
-
             event.setCancelled(true);
-            event.getItem().remove();
+            item.remove();
+        } else {
+            shareUnlockItem(itemStack);
+            item.setItemStack(itemStack);
         }
     }
 }

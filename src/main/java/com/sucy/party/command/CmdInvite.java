@@ -62,7 +62,7 @@ public class CmdInvite implements IFunction {
             }
 
             // Doesn't have permission
-            if (((Parties) plugin).isLeaderInviteOnly() && !party.isLeader(player)) {
+            if (parties.isLeaderInviteOnly() && !party.isLeader(player)) {
                 parties.sendMessage(player, ErrorNodes.NOT_LEADER);
                 return;
             }
