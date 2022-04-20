@@ -5,19 +5,22 @@ max-size: 4
 # before it is automatically cancelled
 invite-timeout: 30
 
-# Whether or not to remove players
+# Whether to remove players
 # when they disconnect
 remove-on-dc: false
 
-# Whether or not to assign a new party leader
+# Whether to assign a new party leader
 # when the current one disconnects
 new-leader-on-dc: true
 
-# Whether or not to use the scoreboard for
+# Whether members of the same party can hurt each other
+friendly-fire: true
+
+# Whether to use the scoreboard for
 # displaying party information
 use-scoreboard: false
 
-# Whether or not only the leader of a party
+# Whether only the leader of a party
 # can invite new members
 only-leader-invites: true
 
@@ -53,6 +56,13 @@ sharing:
   # sequential-stack -> Members of the party take turns getting items, in a per-stack basis
   # random-stack -> Each picked up item stack is granted to a random party member
   type: none
+
+  # Whether to interpret the material-list as a whitelist.
+  # If true, only the listed materials will be affected by sharing
+  # If false, all materials except the listed ones will be affected by sharing
+  whitelist: true
+
+  material-list: []
 
 # Whether debug messages are enabled
 debug-messages: false

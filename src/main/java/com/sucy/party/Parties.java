@@ -33,6 +33,7 @@ public class Parties extends JavaPlugin {
     private boolean removeOnDc;
     private boolean newLeaderOnDc;
     private boolean leaderInviteOnly;
+    private boolean friendlyFire;
     private boolean useScoreboard;
     private boolean levelScoreboard;
     private boolean debug;
@@ -84,6 +85,7 @@ public class Parties extends JavaPlugin {
         removeOnDc = settings.getBoolean("remove-on-dc", false);
         newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
         leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
+        friendlyFire = settings.getBoolean("friendly-fire", true);
         useScoreboard = settings.getBoolean("use-scoreboard", false);
         levelScoreboard = settings.getBoolean("level-scoreboard", false);
         expShareRadiusSq = settings.getDouble("exp-modifications.radius", 30);
@@ -114,35 +116,40 @@ public class Parties extends JavaPlugin {
     }
 
     /**
-     * @return whether or not party members are removed upon disconnect
+     * @return whether party members are removed upon disconnect
      */
     public boolean isRemoveOnDc() {
         return removeOnDc;
     }
 
     /**
-     * @return whether or not a new party leader is chosen upon disconnect
+     * @return whether a new party leader is chosen upon disconnect
      */
     public boolean isNewLeaderOnDc() {
         return newLeaderOnDc;
     }
 
     /**
-     * @return whether or not only the leader can invite new party members
+     * @return whether only the leader can invite new party members
      */
     public boolean isLeaderInviteOnly() {
         return leaderInviteOnly;
     }
 
     /**
-     * @return whether or not scoreboards are being used
+     * @return whether members of the same party can hurt each other
+     */
+    public boolean isFriendlyFireEnabled() { return friendlyFire; }
+
+    /**
+     * @return whether scoreboards are being used
      */
     public boolean isUsingScoreboard() {
         return useScoreboard;
     }
 
     /**
-     * @return whether or not levels are shown in the scoreboard over health
+     * @return whether levels are shown in the scoreboard over health
      */
     public boolean isLevelScoreboard() {
         return levelScoreboard;
@@ -182,7 +189,7 @@ public class Parties extends JavaPlugin {
     }
 
     /**
-     * Whether or not debug messages are enabled
+     * whether debug messages are enabled
      *
      * @return true if enabled, false otherwise
      */
@@ -283,7 +290,7 @@ public class Parties extends JavaPlugin {
      * be only one element. If it was a string list, it will contain each line.</p>
      *
      * @param key     language key
-     * @param player  whether or not the message is for a player
+     * @param player  whether the message is for a player
      * @param filters filters to apply
      * @return list of message lines
      */

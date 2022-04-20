@@ -6,10 +6,8 @@ import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.event.PlayerExperienceGainEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.block.data.type.TNT;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -26,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.projectiles.ProjectileSource;
 
 /**
  * Listener for party mechanics
@@ -45,42 +44,6 @@ public class PartyListener implements Listener {
         this.plugin = plugin;
         SHARE_LOCK_METADATA = new NamespacedKey(plugin, "share_lock");
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-    }
-
-    /**
-     * Prevent party members from damaging one another
-     *
-     * @param event event details
-     */
-    @EventHandler
-    public void onDamage(EntityDamageByEntityEvent event) {
-
-        // Make sure the defender is a player
-        if (event.getEntity() instanceof Player) {
-            Player target = (Player) event.getEntity();
-
-            // Get the attacker
-            Player attacker = null;
-            if (event.getDamager() instanceof Player) {
-                attacker = (Player) event.getDamager();
-            } else if (event.getDamager() instanceof Projectile) {
-                Projectile projectile = (Projectile) event.getDamager();
-                if (projectile.getShooter() != null && projectile.getShooter() instanceof Player) {
-                    attacker = (Player) projectile.getShooter();
-                }
-            }
-
-            // Make sure the attacker is a player
-            if (attacker != null) {
-                IParty targetParty = Hooks.getParty(target);
-                IParty attackerParty = Hooks.getParty(attacker);
-
-                // Cancel damage when in the same party
-                if (targetParty != null && targetParty == attackerParty) {
-                    event.setCancelled(true);
-                }
-            }
-        }
     }
 
     /**
@@ -250,5 +213,39 @@ public class PartyListener implements Listener {
             shareUnlockItem(itemStack);
             item.setItemStack(itemStack);
         }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
+    public void onFriendlyFire(EntityDamageByEntityEvent event) {
+        if (plugin.isFriendlyFireEnabled()) { return; }
+        Entity damaged = event.getEntity();
+        if (!(damaged instanceof Player)) { return; }
+        IParty damagedParty = Hooks.getParty((Player) damaged);
+        if (damagedParty == null) { return; }
+
+        Player damager = getUnderlyingPlayer(event.getDamager());
+        if (damager == null) { return; }
+        IParty damagerParty = Hooks.getParty(damager);
+
+        if (damagedParty == damagerParty) {
+            Bukkit.broadcastMessage("cancelled party damage");
+            event.setCancelled(true);
+        }
+    }
+
+    private Player getUnderlyingPlayer(Entity entity) {
+        if (entity instanceof Player) {
+            return (Player) entity;
+        } else if (entity instanceof Tameable) {
+            AnimalTamer tamer = ((Tameable) entity).getOwner();
+            if (tamer instanceof Entity) { return getUnderlyingPlayer((Entity) tamer); }
+        } else if (entity instanceof Projectile) {
+            ProjectileSource source = ((Projectile) entity).getShooter();
+            if (source instanceof Entity) { return getUnderlyingPlayer((Entity) source); }
+        } else if (entity instanceof TNTPrimed) {
+            Entity source = ((TNTPrimed) entity).getSource();
+            if (source != null) { return getUnderlyingPlayer(source); }
+        }
+        return null;
     }
 }
