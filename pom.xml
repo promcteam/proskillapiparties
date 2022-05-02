@@ -73,13 +73,13 @@
         <dependency>
             <groupId>mc.promcteam</groupId>
             <artifactId>promccore</artifactId>
-            <version>1.0.3.6-ALPHA</version>
+            <version>1.0.3.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>mc.promcteam</groupId>
             <artifactId>proskillapi</artifactId>
-            <version>1.1.7.14-ALPHA</version>
+            <version>1.1.7.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -4,10 +4,8 @@ import com.sucy.party.hook.Hooks;
 import com.sucy.party.mccore.PartyBoardManager;
 import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.event.PlayerExperienceGainEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.data.type.TNT;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -242,7 +240,6 @@ public class PartyListener implements Listener {
         IParty damagerParty = Hooks.getParty(damager);
 
         if (damagedParty == damagerParty) {
-            Bukkit.broadcastMessage("cancelled party damage");
             event.setCancelled(true);
         }
     }
