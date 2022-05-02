@@ -152,6 +152,11 @@ public class PartyListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) { for (ItemStack drop : event.getDrops()) { shareLockItem(drop); } }
 
+    private boolean isShareLocked(ItemStack itemStack) {
+        PersistentDataContainer nbt = itemStack.getItemMeta().getPersistentDataContainer();
+        return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) && nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE).byteValue() > 0;
+    }
+
     private void shareLockItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
@@ -171,17 +176,19 @@ public class PartyListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickup(EntityPickupItemEvent event) {
+        Item item = event.getItem();
+        ItemStack itemStack = item.getItemStack();
+        boolean sharable = !isShareLocked(itemStack);
+        shareUnlockItem(itemStack);
+
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Player)) { return; }
         Player player = (Player) entity;
         IParty party = Hooks.getParty((Player) entity);
         if (party == null) { return; }
 
-        Item item = event.getItem();
-        ItemStack itemStack = item.getItemStack();
-        PersistentDataContainer nbt = itemStack.getItemMeta().getPersistentDataContainer();
-        boolean sharable = !nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) || nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE).byteValue() == 0;
-        if (sharable) {String mode = plugin.getShareMode().toLowerCase();
+        if (sharable) {
+            String mode = plugin.getShareMode().toLowerCase();
             Location location = player.getLocation();
             double radius = plugin.getItemShareRadius();
             switch (mode) {
@@ -221,10 +228,7 @@ public class PartyListener implements Listener {
             }
             event.setCancelled(true);
             item.remove();
-        } else {
-            shareUnlockItem(itemStack);
-            item.setItemStack(itemStack);
-        }
+        } else { item.setItemStack(itemStack); }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
