@@ -68,9 +68,10 @@ public class PartyListener implements Listener {
      *
      * @param event event details
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onExpGain(PlayerExperienceGainEvent event) {
-        if (event.getSource() == ExpSource.COMMAND) { return; }
+        ExpSource source = event.getSource();
+        if (source == ExpSource.COMMAND || !event.getPlayerClass().getData().receivesExp(source)) { return; }
         if (plugin.isDebug()) {
             plugin.getLogger().info("Exp already being shared with "+event.getPlayerData().getPlayerName());
         }
