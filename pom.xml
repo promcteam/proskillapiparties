@@ -60,8 +60,8 @@
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
-            <id>promcteam</id>
-            <url>https://maven.pkg.github.com/promcteam/promccore</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -73,15 +73,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>mc.promcteam</groupId>
+            <groupId>com.github.promcteam</groupId>
             <artifactId>promccore</artifactId>
-            <version>1.0.3.9</version>
+            <version>master-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>mc.promcteam</groupId>
+            <groupId>com.github.promcteam</groupId>
             <artifactId>proskillapi</artifactId>
-            <version>1.1.7.16</version>
+            <version>master-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
