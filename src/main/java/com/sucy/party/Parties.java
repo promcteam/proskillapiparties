@@ -18,11 +18,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Add-on plugin for SkillAPI allowing parties with shared experience
  */
 public class Parties extends JavaPlugin {
+    public static final Random RNG = new Random();
 
     private final ArrayList<Party> parties = new ArrayList<>();
     private final List<Party> partiesRead = Collections.unmodifiableList(parties);
@@ -30,12 +32,15 @@ public class Parties extends JavaPlugin {
     private CommentedLanguageConfig language;
     private UpdateTask task;
     private String sharing;
+    private double itemShareRadius;
     private boolean removeOnDc;
     private boolean newLeaderOnDc;
     private boolean leaderInviteOnly;
+    private boolean friendlyFire;
     private boolean useScoreboard;
     private boolean levelScoreboard;
     private boolean debug;
+    private double expShareRadiusSq;
     private double memberModifier;
     private double levelModifier;
     private long inviteTimeout;
@@ -79,17 +84,21 @@ public class Parties extends JavaPlugin {
 
         language = new CommentedLanguageConfig(this, "language");
 
-        sharing = settings.getString("item-sharing");
-        removeOnDc = settings.getBoolean("remove-on-dc");
-        newLeaderOnDc = settings.getBoolean("new-leader-on-dc");
-        leaderInviteOnly = settings.getBoolean("only-leader-invites");
-        useScoreboard = settings.getBoolean("use-scoreboard");
-        levelScoreboard = settings.getBoolean("level-scoreboard");
-        memberModifier = settings.getDouble("exp-modifications.members");
-        levelModifier = settings.getDouble("exp-modifications.level");
-        inviteTimeout = settings.getInt("invite-timeout")*1000L;
-        maxSize = settings.getInt("max-size");
-        debug = settings.getBoolean("debug-messages");
+        sharing = settings.getString("sharing.type", "none");
+        itemShareRadius = settings.getDouble("sharing.radius", 0);
+        removeOnDc = settings.getBoolean("remove-on-dc", false);
+        newLeaderOnDc = settings.getBoolean("new-leader-on-dc", true);
+        leaderInviteOnly = settings.getBoolean("only-leader-invites", true);
+        friendlyFire = settings.getBoolean("friendly-fire", true);
+        useScoreboard = settings.getBoolean("use-scoreboard", false);
+        levelScoreboard = settings.getBoolean("level-scoreboard", false);
+        expShareRadiusSq = settings.getDouble("exp-modifications.radius", 0);
+        if (expShareRadiusSq > 0) { expShareRadiusSq *= expShareRadiusSq; }
+        memberModifier = settings.getDouble("exp-modifications.members", 1.0);
+        levelModifier = settings.getDouble("exp-modifications.level", 0.0);
+        inviteTimeout = settings.getInt("invite-timeout", 30)*1000L;
+        maxSize = settings.getInt("max-size", 4);
+        debug = settings.getBoolean("debug-messages", false);
     }
 
     /**
@@ -111,35 +120,45 @@ public class Parties extends JavaPlugin {
     }
 
     /**
-     * @return whether or not party members are removed upon disconnect
+     * @return the maximum distance between party members for the item sharing to take effect, in blocks
+     */
+    public double getItemShareRadius() { return itemShareRadius; }
+
+    /**
+     * @return whether party members are removed upon disconnect
      */
     public boolean isRemoveOnDc() {
         return removeOnDc;
     }
 
     /**
-     * @return whether or not a new party leader is chosen upon disconnect
+     * @return whether a new party leader is chosen upon disconnect
      */
     public boolean isNewLeaderOnDc() {
         return newLeaderOnDc;
     }
 
     /**
-     * @return whether or not only the leader can invite new party members
+     * @return whether only the leader can invite new party members
      */
     public boolean isLeaderInviteOnly() {
         return leaderInviteOnly;
     }
 
     /**
-     * @return whether or not scoreboards are being used
+     * @return whether members of the same party can hurt each other
+     */
+    public boolean isFriendlyFireEnabled() { return friendlyFire; }
+
+    /**
+     * @return whether scoreboards are being used
      */
     public boolean isUsingScoreboard() {
         return useScoreboard;
     }
 
     /**
-     * @return whether or not levels are shown in the scoreboard over health
+     * @return whether levels are shown in the scoreboard over health
      */
     public boolean isLevelScoreboard() {
         return levelScoreboard;
@@ -160,6 +179,11 @@ public class Parties extends JavaPlugin {
     }
 
     /**
+     * @return the squared maximum distance between party members for the exp sharing to take effect, in blocks
+     */
+    public double getExpShareRadiusSquared() { return expShareRadiusSq; }
+
+    /**
      * @return the value for the member experience modifier
      */
     public double getMemberModifier() {
@@ -174,7 +198,7 @@ public class Parties extends JavaPlugin {
     }
 
     /**
-     * Whether or not debug messages are enabled
+     * whether debug messages are enabled
      *
      * @return true if enabled, false otherwise
      */
@@ -275,7 +299,7 @@ public class Parties extends JavaPlugin {
      * be only one element. If it was a string list, it will contain each line.</p>
      *
      * @param key     language key
-     * @param player  whether or not the message is for a player
+     * @param player  whether the message is for a player
      * @param filters filters to apply
      * @return list of message lines
      */
