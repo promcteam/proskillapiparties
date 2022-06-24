@@ -68,7 +68,7 @@ public class PartyListener implements Listener {
      *
      * @param event event details
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onExpGain(PlayerExperienceGainEvent event) {
         ExpSource source = event.getSource();
         if (source == ExpSource.COMMAND || !event.getPlayerClass().getData().receivesExp(source)) { return; }
