@@ -28,7 +28,6 @@ package com.sucy.party.hook;
 
 import com.sucy.party.IParty;
 import com.sucy.party.Parties;
-import com.sucy.party.inject.Server;
 import com.sucy.party.lang.PartyNodes;
 import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.enums.ExpSource;
@@ -115,25 +114,33 @@ public class InstancesParty implements IParty {
     public void giveExp(Player source, double amount, ExpSource expSource) {
         if (isEmpty()) { return; }
         double radiusSq = plugin.getExpShareRadiusSquared();
+        List<Player> reachedPlayers = new ArrayList<>();
+        for (Player member : party.getMembers()) {
+            if (radiusSq >= 0 && (!member.getWorld().equals(source.getWorld()) || member.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
+            reachedPlayers.add(member);
+        }
+
+
         // Member modifier
-        double baseAmount = amount/(1+(party.getMembers().size()-1)*plugin.getMemberModifier());
+        amount = amount/(1+(reachedPlayers.size()-1)*plugin.getMemberModifier());
         PlayerData data = SkillAPI.getPlayerData(source);
         PlayerClass main = data.getMainClass();
         int level = main == null ? 0 : main.getLevel();
 
         // Grant exp to all members
-        for (Player member : party.getMembers()) {
-            if (radiusSq >= 0 && (!member.getWorld().equals(source.getWorld()) || member.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
+        for (Player member : reachedPlayers) {
             // Player must be online
             PlayerData info = SkillAPI.getPlayerData(member);
             main = info.getMainClass();
             int lvl = main == null ? 0 : main.getLevel();
-            int exp = (int) Math.ceil(baseAmount);
+            int exp;
 
             // Level modifier
             if (plugin.getLevelModifier() > 0) {
                 int dl = lvl-level;
-                exp = (int) Math.ceil(baseAmount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
+                exp = (int) Math.ceil(amount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
+            } else {
+                exp = (int) Math.ceil(amount);
             }
 
             info.giveExp(exp, expSource);

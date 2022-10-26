@@ -16,7 +16,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Data for a party
@@ -294,25 +296,31 @@ public class Party implements IParty {
     public void giveExp(Player source, double amount, ExpSource expSource) {
         if (getOnlinePartySize() == 0) { return; }
         double radiusSq = plugin.getExpShareRadiusSquared();
-
-        // Member modifier
-        double baseAmount = amount/(1+(getOnlinePartySize()-1)*plugin.getMemberModifier());
-        int level = Server.getLevel(source.getName());
-
-        // Grant exp to all members
+        List<Player> reachedPlayers = new ArrayList<>();
         for (String member : members) {
             Player player = Server.getPlayer(member);
             if (player == null) { continue; }
             if (radiusSq >= 0 && (!player.getWorld().equals(source.getWorld()) || player.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
+            reachedPlayers.add(player);
+        }
+
+        // Member modifier
+        amount = amount/(1+(reachedPlayers.size()-1)*plugin.getMemberModifier());
+        int level = Server.getLevel(source.getName());
+
+        // Grant exp to all members
+        for (Player player : reachedPlayers) {
             PlayerData info = Server.getPlayerData(player);
             PlayerClass main = info.getMainClass();
             int lvl = main == null ? 0 : main.getLevel();
-            int exp = (int) Math.ceil(baseAmount);
+            int exp;
 
             // Level modifier
             if (plugin.getLevelModifier() > 0) {
                 int dl = lvl-level;
-                exp = (int) Math.ceil(baseAmount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
+                exp = (int) Math.ceil(amount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
+            } else {
+                exp =(int) Math.ceil(amount);
             }
 
             info.giveExp(exp, expSource);
