@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -25,6 +26,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 
+import java.util.Objects;
+
 /**
  * Listener for party mechanics
  */
@@ -32,7 +35,8 @@ public class PartyListener implements Listener {
 
     private final Parties plugin;
     private boolean shared = false;
-    private NamespacedKey SHARE_LOCK_METADATA;
+    private final NamespacedKey SHARE_LOCK_METADATA;
+    private final String SHARE_LOCK_TAG;
 
     /**
      * Constructor
@@ -42,6 +46,7 @@ public class PartyListener implements Listener {
     public PartyListener(Parties plugin) {
         this.plugin = plugin;
         SHARE_LOCK_METADATA = new NamespacedKey(plugin, "share_lock");
+        SHARE_LOCK_TAG = SHARE_LOCK_METADATA.toString();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -128,19 +133,12 @@ public class PartyListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDrop(PlayerDropItemEvent event) {
-        Item item = event.getItemDrop();
-        ItemStack itemStack = item.getItemStack();
-        shareLockItem(itemStack);
-        item.setItemStack(itemStack);
+        shareLockItem(event.getItemDrop());
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDrop(BlockDropItemEvent event) {
-        for (Item item : event.getItems()) {
-            ItemStack itemStack = item.getItemStack();
-            shareLockItem(itemStack);
-            item.setItemStack(itemStack);
-        }
+        for (Item item : event.getItems()) { shareLockItem(item); }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -151,21 +149,47 @@ public class PartyListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onPlayerDeath(PlayerDeathEvent event) { for (ItemStack drop : event.getDrops()) { shareLockItem(drop); } }
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        for (ItemStack drop : event.getDrops()) { shareLockItem(drop); } }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntitySpawn(EntitySpawnEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Item)) { return; }
+        Item item = (Item) entity;
+        ItemStack itemStack = item.getItemStack();
+        if (isShareLocked(itemStack)) {
+            shareUnlockItem(itemStack);
+            shareLockItem(item);
+            item.setItemStack(itemStack);
+        }
+    }
 
     private boolean isShareLocked(ItemStack itemStack) {
-        PersistentDataContainer nbt = itemStack.getItemMeta().getPersistentDataContainer();
-        return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) && nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE).byteValue() > 0;
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) { return false; }
+        PersistentDataContainer nbt = meta.getPersistentDataContainer();
+        return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) && Objects.requireNonNull(nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE)) > 0;
+    }
+
+    private boolean isShareLocked(Item item) {
+        return item.getScoreboardTags().contains(SHARE_LOCK_TAG);
     }
 
     private void shareLockItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) { return; }
         itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
         itemStack.setItemMeta(itemMeta);
     }
 
+    private void shareLockItem(Item item) {
+        item.addScoreboardTag(SHARE_LOCK_TAG);
+    }
+
     private void shareUnlockItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) { return; }
         itemMeta.getPersistentDataContainer().remove(SHARE_LOCK_METADATA);
         itemStack.setItemMeta(itemMeta);
     }
@@ -178,9 +202,7 @@ public class PartyListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickup(EntityPickupItemEvent event) {
         Item item = event.getItem();
-        ItemStack itemStack = item.getItemStack();
-        boolean sharable = !isShareLocked(itemStack);
-        shareUnlockItem(itemStack);
+        boolean sharable = !isShareLocked(item);
 
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Player)) { return; }
@@ -188,6 +210,7 @@ public class PartyListener implements Listener {
         IParty party = Hooks.getParty((Player) entity);
         if (party == null) { return; }
 
+        ItemStack itemStack = item.getItemStack();
         if (sharable) {
             String mode = plugin.getShareMode().toLowerCase();
             Location location = player.getLocation();
@@ -229,7 +252,7 @@ public class PartyListener implements Listener {
             }
             event.setCancelled(true);
             item.remove();
-        } else { item.setItemStack(itemStack); }
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
