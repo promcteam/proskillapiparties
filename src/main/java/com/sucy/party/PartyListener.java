@@ -2,6 +2,7 @@ package com.sucy.party;
 
 import com.sucy.party.hook.Hooks;
 import com.sucy.party.mccore.PartyBoardManager;
+import com.sucy.skill.api.DefaultCombatProtection;
 import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.event.PlayerExperienceGainEvent;
 import org.bukkit.Location;
@@ -33,10 +34,10 @@ import java.util.Objects;
  */
 public class PartyListener implements Listener {
 
-    private final Parties plugin;
-    private boolean shared = false;
+    private final Parties       plugin;
+    private       boolean       shared = false;
     private final NamespacedKey SHARE_LOCK_METADATA;
-    private final String SHARE_LOCK_TAG;
+    private final String        SHARE_LOCK_TAG;
 
     /**
      * Constructor
@@ -76,21 +77,27 @@ public class PartyListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onExpGain(PlayerExperienceGainEvent event) {
         ExpSource source = event.getSource();
-        if (source == ExpSource.COMMAND || !event.getPlayerClass().getData().receivesExp(source)) { return; }
-        if (plugin.isDebug()) {
-            plugin.getLogger().info("Exp already being shared with "+event.getPlayerData().getPlayerName());
+        if (source == ExpSource.COMMAND || !event.getPlayerClass().getData().receivesExp(source)) {
+            return;
         }
-        if (shared) { return; }
+        if (plugin.isDebug()) {
+            plugin.getLogger().info("Exp already being shared with " + event.getPlayerData().getPlayerName());
+        }
+        if (shared) {
+            return;
+        }
         IParty party = Hooks.getParty(event.getPlayerData().getPlayer());
         if (plugin.isDebug()) {
-            plugin.getLogger().info(event.getPlayerData().getPlayerName()+" has a party? "+(party != null));
+            plugin.getLogger().info(event.getPlayerData().getPlayerName() + " has a party? " + (party != null));
         }
         if (party != null) {
             event.setCancelled(true);
             shared = true;
             party.giveExp(event.getPlayerData().getPlayer(), event.getExp(), event.getSource());
             shared = false;
-            if (plugin.isDebug()) { plugin.getLogger().info("Exp was shared!"); }
+            if (plugin.isDebug()) {
+                plugin.getLogger().info("Exp was shared!");
+            }
         }
     }
 
@@ -115,20 +122,30 @@ public class PartyListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        Party party = plugin.getParty(player);
-        if (party == null) { return; }
+        Party  party  = plugin.getParty(player);
+        if (party == null) {
+            return;
+        }
 
         // Decline invitations on quit
-        if (party.isInvited(player)) { party.decline(player); }
+        if (party.isInvited(player)) {
+            party.decline(player);
+        }
 
         // Removing players on disconnect
-        else if (plugin.isRemoveOnDc()) { party.removeMember(player); }
+        else if (plugin.isRemoveOnDc()) {
+            party.removeMember(player);
+        }
 
         // Changing leader on disconnect
-        else if (plugin.isNewLeaderOnDc() && party.isLeader(player)) { party.changeLeader(); }
+        else if (plugin.isNewLeaderOnDc() && party.isLeader(player)) {
+            party.changeLeader();
+        }
 
         // Removes a party when it's online size reaches 0
-        if (party.getOnlinePartySize() == 0) { plugin.removeParty(party); }
+        if (party.getOnlinePartySize() == 0) {
+            plugin.removeParty(party);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -138,7 +155,9 @@ public class PartyListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDrop(BlockDropItemEvent event) {
-        for (Item item : event.getItems()) { shareLockItem(item); }
+        for (Item item : event.getItems()) {
+            shareLockItem(item);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -150,13 +169,18 @@ public class PartyListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        for (ItemStack drop : event.getDrops()) { shareLockItem(drop); } }
+        for (ItemStack drop : event.getDrops()) {
+            shareLockItem(drop);
+        }
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntitySpawn(EntitySpawnEvent event) {
         Entity entity = event.getEntity();
-        if (!(entity instanceof Item)) { return; }
-        Item item = (Item) entity;
+        if (!(entity instanceof Item)) {
+            return;
+        }
+        Item      item      = (Item) entity;
         ItemStack itemStack = item.getItemStack();
         if (isShareLocked(itemStack)) {
             shareUnlockItem(itemStack);
@@ -167,7 +191,9 @@ public class PartyListener implements Listener {
 
     private boolean isShareLocked(ItemStack itemStack) {
         ItemMeta meta = itemStack.getItemMeta();
-        if (meta == null) { return false; }
+        if (meta == null) {
+            return false;
+        }
         PersistentDataContainer nbt = meta.getPersistentDataContainer();
         return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) && Objects.requireNonNull(nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE)) > 0;
     }
@@ -178,7 +204,9 @@ public class PartyListener implements Listener {
 
     private void shareLockItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
-        if (itemMeta == null) { return; }
+        if (itemMeta == null) {
+            return;
+        }
         itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
         itemStack.setItemMeta(itemMeta);
     }
@@ -189,7 +217,9 @@ public class PartyListener implements Listener {
 
     private void shareUnlockItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
-        if (itemMeta == null) { return; }
+        if (itemMeta == null) {
+            return;
+        }
         itemMeta.getPersistentDataContainer().remove(SHARE_LOCK_METADATA);
         itemStack.setItemMeta(itemMeta);
     }
@@ -201,27 +231,33 @@ public class PartyListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPickup(EntityPickupItemEvent event) {
-        Item item = event.getItem();
+        Item    item     = event.getItem();
         boolean sharable = !isShareLocked(item);
 
         LivingEntity entity = event.getEntity();
-        if (!(entity instanceof Player)) { return; }
+        if (!(entity instanceof Player)) {
+            return;
+        }
         Player player = (Player) entity;
-        IParty party = Hooks.getParty((Player) entity);
-        if (party == null) { return; }
+        IParty party  = Hooks.getParty((Player) entity);
+        if (party == null) {
+            return;
+        }
 
         ItemStack itemStack = item.getItemStack();
         if (sharable) {
-            String mode = plugin.getShareMode().toLowerCase();
+            String   mode     = plugin.getShareMode().toLowerCase();
             Location location = player.getLocation();
-            double radius = plugin.getItemShareRadius();
+            double   radius   = plugin.getItemShareRadius();
             switch (mode) {
                 case "sequential": {
                     int count = itemStack.getAmount();
                     itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
                         Player receiver = party.getSequentialPlayer(location, radius);
-                        if (receiver == null) { receiver = player; }
+                        if (receiver == null) {
+                            receiver = player;
+                        }
                         receiver.getInventory().addItem(itemStack);
                     }
                     break;
@@ -231,24 +267,31 @@ public class PartyListener implements Listener {
                     itemStack.setAmount(1);
                     for (int i = 0; i < count; i++) {
                         Player receiver = party.getRandomPlayer(location, radius);
-                        if (receiver == null) { receiver = player; }
+                        if (receiver == null) {
+                            receiver = player;
+                        }
                         receiver.getInventory().addItem(itemStack);
                     }
                     break;
                 }
                 case "sequential-stack": {
                     Player receiver = party.getSequentialPlayer(location, radius);
-                    if (receiver == null) { receiver = player; }
+                    if (receiver == null) {
+                        receiver = player;
+                    }
                     receiver.getInventory().addItem(itemStack);
                     break;
                 }
                 case "random-stack": {
                     Player receiver = party.getRandomPlayer(location, radius);
-                    if (receiver == null) { receiver = player; }
+                    if (receiver == null) {
+                        receiver = player;
+                    }
                     receiver.getInventory().addItem(itemStack);
                     break;
                 }
-                default: return;
+                default:
+                    return;
             }
             event.setCancelled(true);
             item.remove();
@@ -257,14 +300,25 @@ public class PartyListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onFriendlyFire(EntityDamageByEntityEvent event) {
-        if (plugin.isFriendlyFireEnabled()) { return; }
+        boolean intervene =
+                ((event instanceof DefaultCombatProtection.FakeEntityDamageByEntityEvent)
+                        && plugin.isPartyAllyEnabled())
+                        || !plugin.isFriendlyFireEnabled();
+        if (!intervene) return;
+
         Entity damaged = event.getEntity();
-        if (!(damaged instanceof Player)) { return; }
+        if (!(damaged instanceof Player)) {
+            return;
+        }
         IParty damagedParty = Hooks.getParty((Player) damaged);
-        if (damagedParty == null) { return; }
+        if (damagedParty == null) {
+            return;
+        }
 
         Player damager = getUnderlyingPlayer(event.getDamager());
-        if (damager == null) { return; }
+        if (damager == null) {
+            return;
+        }
         IParty damagerParty = Hooks.getParty(damager);
 
         if (damagedParty == damagerParty) {
@@ -277,13 +331,19 @@ public class PartyListener implements Listener {
             return (Player) entity;
         } else if (entity instanceof Tameable) {
             AnimalTamer tamer = ((Tameable) entity).getOwner();
-            if (tamer instanceof Entity) { return getUnderlyingPlayer((Entity) tamer); }
+            if (tamer instanceof Entity) {
+                return getUnderlyingPlayer((Entity) tamer);
+            }
         } else if (entity instanceof Projectile) {
             ProjectileSource source = ((Projectile) entity).getShooter();
-            if (source instanceof Entity) { return getUnderlyingPlayer((Entity) source); }
+            if (source instanceof Entity) {
+                return getUnderlyingPlayer((Entity) source);
+            }
         } else if (entity instanceof TNTPrimed) {
             Entity source = ((TNTPrimed) entity).getSource();
-            if (source != null) { return getUnderlyingPlayer(source); }
+            if (source != null) {
+                return getUnderlyingPlayer(source);
+            }
         }
         return null;
     }

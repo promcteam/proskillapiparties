@@ -2,13 +2,14 @@ package com.sucy.party.command;
 
 import com.sucy.party.Parties;
 import com.sucy.party.Party;
-import com.sucy.party.inject.Server;
 import com.sucy.party.lang.ErrorNodes;
 import com.sucy.party.lang.IndividualNodes;
 import com.sucy.party.lang.PartyNodes;
 import mc.promcteam.engine.mccore.commands.ConfigurableCommand;
 import mc.promcteam.engine.mccore.commands.IFunction;
 import mc.promcteam.engine.mccore.config.Filter;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -45,7 +46,7 @@ public class CmdInvite implements IFunction {
         }
 
         // Validate the player
-        Player target = Server.getPlayer(args[0]);
+        Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
             parties.sendMessage(player, ErrorNodes.NOT_ONLINE);
             return;

@@ -13,8 +13,11 @@ import mc.promcteam.engine.mccore.config.FilterType;
 import mc.promcteam.engine.mccore.config.parse.DataSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,25 +29,34 @@ import java.util.Random;
 public class Parties extends JavaPlugin {
     public static final Random RNG = new Random();
 
-    private final ArrayList<Party> parties = new ArrayList<>();
-    private final List<Party> partiesRead = Collections.unmodifiableList(parties);
-    private final ArrayList<String> toggled = new ArrayList<>();
-    private CommentedLanguageConfig language;
-    private UpdateTask task;
-    private String sharing;
-    private double itemShareRadius;
-    private boolean removeOnDc;
-    private boolean newLeaderOnDc;
-    private boolean leaderInviteOnly;
-    private boolean friendlyFire;
-    private boolean useScoreboard;
-    private boolean levelScoreboard;
-    private boolean debug;
-    private double expShareRadiusSq;
-    private double memberModifier;
-    private double levelModifier;
-    private long inviteTimeout;
-    private int maxSize;
+    private final List<Party>             parties     = new ArrayList<>();
+    private final List<Party>             partiesRead = Collections.unmodifiableList(parties);
+    private final List<String>            toggled     = new ArrayList<>();
+    private       CommentedLanguageConfig language;
+    private       UpdateTask              task;
+    private       String                  sharing;
+    private       double                  itemShareRadius;
+    private       boolean                 removeOnDc;
+    private       boolean                 newLeaderOnDc;
+    private       boolean                 leaderInviteOnly;
+    private       boolean                 friendlyFire;
+    private boolean partyAlly;
+    private       boolean                 useScoreboard;
+    private       boolean                 levelScoreboard;
+    private       boolean                 debug;
+    private       double                  expShareRadiusSq;
+    private       double                  memberModifier;
+    private       double                  levelModifier;
+    private       long                    inviteTimeout;
+    private       int                     maxSize;
+
+    public Parties() {
+        super();
+    }
+
+    public Parties(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) {
+        super(loader, description, dataFolder, file);
+    }
 
     /**
      * Loads settings and sets up the listeners
@@ -68,7 +80,7 @@ public class Parties extends JavaPlugin {
                 new ConfigurableCommand(this, "message", SenderType.PLAYER_ONLY, new CmdMsg(), "Sends a message to your party", "<message>", PermissionNode.GENERAL),
                 new ConfigurableCommand(this, "toggle", SenderType.PLAYER_ONLY, new CmdToggle(), "Toggles party chat on/off", "", PermissionNode.GENERAL),
                 new ConfigurableCommand(this, "reload", SenderType.ANYONE, new CmdReload(), "Reloads the plugin's config.yml and language.yml", "", PermissionNode.RELOAD)
-                           );
+        );
         CommandManager.registerCommand(root);
 
         Hooks.init(this);
@@ -93,11 +105,14 @@ public class Parties extends JavaPlugin {
         useScoreboard = settings.getBoolean("use-scoreboard", false);
         levelScoreboard = settings.getBoolean("level-scoreboard", false);
         expShareRadiusSq = settings.getDouble("exp-modifications.radius", 0);
-        if (expShareRadiusSq > 0) { expShareRadiusSq *= expShareRadiusSq; }
+        if (expShareRadiusSq > 0) {
+            expShareRadiusSq *= expShareRadiusSq;
+        }
         memberModifier = settings.getDouble("exp-modifications.members", 1.0);
         levelModifier = settings.getDouble("exp-modifications.level", 0.0);
-        inviteTimeout = settings.getInt("invite-timeout", 30)*1000L;
+        inviteTimeout = settings.getInt("invite-timeout", 30) * 1000L;
         maxSize = settings.getInt("max-size", 4);
+        partyAlly = settings.getBoolean("party-ally", true);
         debug = settings.getBoolean("debug-messages", false);
     }
 
@@ -122,7 +137,7 @@ public class Parties extends JavaPlugin {
     /**
      * @return the maximum distance between party members for the item sharing to take effect, in blocks
      */
-    public double getItemShareRadius() { return itemShareRadius; }
+    public double getItemShareRadius() {return itemShareRadius;}
 
     /**
      * @return whether party members are removed upon disconnect
@@ -148,7 +163,12 @@ public class Parties extends JavaPlugin {
     /**
      * @return whether members of the same party can hurt each other
      */
-    public boolean isFriendlyFireEnabled() { return friendlyFire; }
+    public boolean isFriendlyFireEnabled() {return friendlyFire;}
+
+    /**
+     * @return whether party members should be treated as allies in ProSkillAPI
+     */
+    public boolean isPartyAllyEnabled() {return partyAlly;}
 
     /**
      * @return whether scoreboards are being used
@@ -181,7 +201,7 @@ public class Parties extends JavaPlugin {
     /**
      * @return the squared maximum distance between party members for the exp sharing to take effect, in blocks
      */
-    public double getExpShareRadiusSquared() { return expShareRadiusSq; }
+    public double getExpShareRadiusSquared() {return expShareRadiusSq;}
 
     /**
      * @return the value for the member experience modifier
@@ -228,12 +248,10 @@ public class Parties extends JavaPlugin {
      * @return party the player is in or null if not found
      */
     public Party getParty(Player player) {
-        for (Party party : parties) {
-            if (party.isMember(player) || party.isInvited(player)) {
-                return party;
-            }
-        }
-        return null;
+        return parties.stream()
+                .filter(party -> party.isMember(player) || party.isInvited(player))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -288,7 +306,9 @@ public class Parties extends JavaPlugin {
     public void toggle(String playerName) {
         if (isToggled(playerName)) {
             toggled.remove(playerName.toLowerCase());
-        } else { toggled.add(playerName.toLowerCase()); }
+        } else {
+            toggled.add(playerName.toLowerCase());
+        }
     }
 
     /**

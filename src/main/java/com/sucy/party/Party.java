@@ -13,22 +13,21 @@ import com.sucy.skill.api.player.PlayerData;
 import mc.promcteam.engine.mccore.config.Filter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Data for a party
  */
 public class Party implements IParty {
-    private final ArrayList<String> members = new ArrayList<>();
-    private final HashMap<String,Long> invitations = new HashMap<>();
-    private final Parties plugin;
-    private Player partyLeader;
-    private int nextId = -1;
+    private final List<UUID>      members     = new ArrayList<>();
+    private final Map<UUID, Long> invitations = new HashMap<>();
+    private final Parties         plugin;
+    private       UUID            leaderId;
+    private       int             nextId      = -1;
 
     /**
      * Constructor
@@ -38,8 +37,8 @@ public class Party implements IParty {
      */
     public Party(Parties plugin, Player leader) {
         this.plugin = plugin;
-        this.partyLeader = leader;
-        members.add(partyLeader.getName());
+        this.leaderId = leader.getUniqueId();
+        this.members.add(leader.getUniqueId());
     }
 
     /**
@@ -47,7 +46,7 @@ public class Party implements IParty {
      */
     public boolean isFull() {
         checkInvitations();
-        return invitations.size()+members.size() >= plugin.getMaxSize();
+        return invitations.size() + members.size() >= plugin.getMaxSize();
     }
 
     /**
@@ -55,7 +54,7 @@ public class Party implements IParty {
      */
     public boolean isEmpty() {
         checkInvitations();
-        return invitations.size()+members.size() <= 1;
+        return invitations.size() + members.size() <= 1;
     }
 
     /**
@@ -63,8 +62,8 @@ public class Party implements IParty {
      *
      * @return party leader
      */
-    public Player getLeader() {
-        return partyLeader;
+    public OfflinePlayer getLeader() {
+        return Bukkit.getOfflinePlayer(this.leaderId);
     }
 
     /**
@@ -75,9 +74,9 @@ public class Party implements IParty {
     public Player getSequentialPlayer() {
         Player member;
         do {
-            nextId = (nextId+1)%members.size();
+            nextId = (nextId + 1) % members.size();
         }
-        while ((member = Server.getPlayer(members.get(nextId))) == null);
+        while ((member = Bukkit.getPlayer(members.get(nextId))) == null);
         return member;
     }
 
@@ -85,7 +84,7 @@ public class Party implements IParty {
      * Gets the next member that is within a sphere, in a sequential order
      *
      * @param location center of the sphere
-     * @param radius radius of the sphere
+     * @param radius   radius of the sphere
      * @return the next player within the sphere, or null if none was found
      */
     @Override
@@ -94,10 +93,14 @@ public class Party implements IParty {
         radius *= radius;
         int size = members.size();
         for (int i = 0; i < size; i++) {
-            nextId = (nextId+1)%size;
-            Player player = Server.getPlayer(members.get(nextId));
-            if (player == null) { continue; }
-            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            nextId = (nextId + 1) % size;
+            Player player = Bukkit.getPlayer(members.get(nextId));
+            if (player == null) {
+                continue;
+            }
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) {
+                continue;
+            }
             return player;
         }
         return null;
@@ -111,7 +114,7 @@ public class Party implements IParty {
     public Player getRandomPlayer() {
         Player member;
         do {
-            member = Server.getPlayer(members.get(Parties.RNG.nextInt(members.size())));
+            member = Bukkit.getPlayer(members.get(Parties.RNG.nextInt(members.size())));
         } while (member == null);
         return member;
     }
@@ -120,19 +123,23 @@ public class Party implements IParty {
      * Gets a random member that is within a sphere, in a sequential order
      *
      * @param location center of the sphere
-     * @param radius radius of the sphere
+     * @param radius   radius of the sphere
      * @return random member within the sphere, or null if none was found
      */
     @Override
     @Nullable
     public Player getRandomPlayer(Location location, double radius) {
         radius *= radius;
-        List<String> members = new ArrayList<>(this.members);
-        int size = this.members.size();
+        List<UUID> members = new ArrayList<>(this.members);
+        int        size    = this.members.size();
         for (int i = 0; i < size; i++) {
-            Player player = Server.getPlayer(members.remove(Parties.RNG.nextInt(members.size())));
-            if (player == null) { continue; }
-            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) { continue; }
+            Player player = Bukkit.getPlayer(members.remove(Parties.RNG.nextInt(members.size())));
+            if (player == null) {
+                continue;
+            }
+            if (radius >= 0 && (!player.getWorld().equals(location.getWorld()) || player.getLocation().distanceSquared(location) > radius)) {
+                continue;
+            }
             return player;
         }
         return null;
@@ -142,14 +149,13 @@ public class Party implements IParty {
      * Clears all expired invitations from the map
      */
     public void checkInvitations() {
-        String[] members = invitations.keySet().toArray(new String[invitations.size()]);
-        for (String member : members) {
-            if (invitations.get(member) < System.currentTimeMillis()) {
-                invitations.remove(member);
-                Player player = Server.getPlayer(member);
-                if (player != null) {
-                    sendMessages(plugin.getMessage(PartyNodes.NO_RESPONSE, true, Filter.PLAYER.setReplacement(player.getName())));
-                    plugin.sendMessage(player, IndividualNodes.NO_RESPONSE);
+        for (UUID id : invitations.keySet()) {
+            if (invitations.get(id) < System.currentTimeMillis()) {
+                invitations.remove(id);
+                OfflinePlayer op = Bukkit.getOfflinePlayer(id);
+                sendMessages(plugin.getMessage(PartyNodes.NO_RESPONSE, true, Filter.PLAYER.setReplacement(op.getName())));
+                if (op.isOnline()) {
+                    plugin.sendMessage(op.getPlayer(), IndividualNodes.NO_RESPONSE);
                 }
             }
         }
@@ -165,7 +171,7 @@ public class Party implements IParty {
     /**
      * @return list of names of the members in the party
      */
-    public ArrayList<String> getMembers() {
+    public List<UUID> getMembers() {
         return members;
     }
 
@@ -174,8 +180,10 @@ public class Party implements IParty {
      */
     public int getOnlinePartySize() {
         int counter = 0;
-        for (String member : members) {
-            if (Server.isOnline(member)) { counter++; }
+        for (UUID id : members) {
+            if (Bukkit.getOfflinePlayer(id).isOnline()) {
+                counter++;
+            }
         }
         return counter;
     }
@@ -187,7 +195,7 @@ public class Party implements IParty {
      * @return true if on the team, false otherwise
      */
     public boolean isMember(Player player) {
-        return members.contains(player.getName());
+        return members.contains(player.getUniqueId());
     }
 
     /**
@@ -198,7 +206,7 @@ public class Party implements IParty {
      */
     public boolean isInvited(Player player) {
         checkInvitations();
-        return invitations.containsKey(player.getName());
+        return invitations.containsKey(player.getUniqueId());
     }
 
     /**
@@ -208,7 +216,7 @@ public class Party implements IParty {
      * @return true if they're the leader, false otherwise
      */
     public boolean isLeader(Player player) {
-        return partyLeader.equals(player);
+        return leaderId.equals(player.getUniqueId());
     }
 
     /**
@@ -217,8 +225,8 @@ public class Party implements IParty {
      * @param player player to add
      */
     public void invite(Player player) {
-        if (!members.contains(player.getName()) && !invitations.containsKey(player.getName())) {
-            invitations.put(player.getName(), System.currentTimeMillis()+plugin.getInviteTimeout());
+        if (!members.contains(player.getUniqueId()) && !invitations.containsKey(player.getUniqueId())) {
+            invitations.put(player.getUniqueId(), System.currentTimeMillis() + plugin.getInviteTimeout());
         }
     }
 
@@ -228,15 +236,21 @@ public class Party implements IParty {
      * @param player player to accept
      */
     public void accept(Player player) {
-        if (invitations.containsKey(player.getName())) {
-            invitations.remove(player.getName());
+        if (invitations.containsKey(player.getUniqueId())) {
+            invitations.remove(player.getUniqueId());
 
             PlayerJoinPartyEvent event = new PlayerJoinPartyEvent(this, player);
             Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled()) { return; }
+            if (event.isCancelled()) {
+                return;
+            }
 
-            members.add(player.getName());
-            if (members.size() == 2) { PartyBoardManager.applyBoard(plugin, getLeader()); }
+            members.add(player.getUniqueId());
+            if (members.size() == 2) {
+                OfflinePlayer leader = getLeader();
+                if (leader.isOnline())
+                    PartyBoardManager.applyBoard(plugin, getLeader().getPlayer());
+            }
             PartyBoardManager.applyBoard(plugin, player);
         }
     }
@@ -245,7 +259,7 @@ public class Party implements IParty {
      * @param player player to decline
      */
     public void decline(Player player) {
-        invitations.remove(player.getName());
+        invitations.remove(player.getUniqueId());
     }
 
     /**
@@ -254,36 +268,36 @@ public class Party implements IParty {
      * @param player player to remove
      */
     public void removeMember(Player player) {
-        members.remove(player.getName());
+        members.remove(player.getUniqueId());
         if (isLeader(player) && members.size() > 0) {
             changeLeader();
         }
         PartyBoardManager.clearBoard(plugin, player);
         Bukkit.getPluginManager().callEvent(new PlayerLeavePartyEvent(this, player));
+        updateBoards();
     }
 
     /**
-     * Changes the leader of the party
+     * Changes the leader of the party if another member exists
      */
     public void changeLeader() {
-        for (String member : members) {
-            if (Server.isOnline(member)) {
-                partyLeader = Server.getPlayer(member);
-                sendMessages(plugin.getMessage(PartyNodes.NEW_LEADER, true, Filter.PLAYER.setReplacement(partyLeader.getName())));
-            }
-        }
+        if (members.isEmpty()) return;
+        members.stream().map(Bukkit::getOfflinePlayer)
+                .filter(OfflinePlayer::isOnline)
+                .findFirst()
+                .ifPresent(op -> {
+                    leaderId = op.getUniqueId();
+                    sendMessages(plugin.getMessage(PartyNodes.NEW_LEADER, true, Filter.PLAYER.setReplacement(op.getName())));
+                });
     }
 
     /**
      * Removes scoreboards for the party
      */
     public void removeBoards() {
-        for (String member : members) {
-            Player player = Server.getPlayer(member);
-            if (player != null) {
-                PartyBoardManager.clearBoard(plugin, player);
-            }
-        }
+        members.stream().map(Bukkit::getOfflinePlayer)
+                .filter(OfflinePlayer::isOnline)
+                .forEach(player -> PartyBoardManager.clearBoard(plugin, player.getPlayer()));
     }
 
     /**
@@ -294,33 +308,39 @@ public class Party implements IParty {
      * @param expSource the source type of the gained experience
      */
     public void giveExp(Player source, double amount, ExpSource expSource) {
-        if (getOnlinePartySize() == 0) { return; }
-        double radiusSq = plugin.getExpShareRadiusSquared();
+        if (getOnlinePartySize() == 0) {
+            return;
+        }
+        double       radiusSq       = plugin.getExpShareRadiusSquared();
         List<Player> reachedPlayers = new ArrayList<>();
-        for (String member : members) {
-            Player player = Server.getPlayer(member);
-            if (player == null) { continue; }
-            if (radiusSq >= 0 && (!player.getWorld().equals(source.getWorld()) || player.getLocation().distanceSquared(source.getLocation()) > radiusSq)) { continue; }
+        for (UUID id : members) {
+            Player player = Bukkit.getPlayer(id);
+            if (player == null) {
+                continue;
+            }
+            if (radiusSq >= 0 && (!player.getWorld().equals(source.getWorld()) || player.getLocation().distanceSquared(source.getLocation()) > radiusSq)) {
+                continue;
+            }
             reachedPlayers.add(player);
         }
 
         // Member modifier
-        amount = amount/(1+(reachedPlayers.size()-1)*plugin.getMemberModifier());
-        int level = Server.getLevel(source.getName());
+        amount = amount / (1 + (reachedPlayers.size() - 1) * plugin.getMemberModifier());
+        int level = Server.getLevel(source.getUniqueId());
 
         // Grant exp to all members
         for (Player player : reachedPlayers) {
-            PlayerData info = Server.getPlayerData(player);
+            PlayerData  info = Server.getPlayerData(player);
             PlayerClass main = info.getMainClass();
-            int lvl = main == null ? 0 : main.getLevel();
-            int exp;
+            int         lvl  = main == null ? 0 : main.getLevel();
+            int         exp;
 
             // Level modifier
             if (plugin.getLevelModifier() > 0) {
-                int dl = lvl-level;
-                exp = (int) Math.ceil(amount*Math.pow(2, -plugin.getLevelModifier()*dl*dl));
+                int dl = lvl - level;
+                exp = (int) Math.ceil(amount * Math.pow(2, -plugin.getLevelModifier() * dl * dl));
             } else {
-                exp =(int) Math.ceil(amount);
+                exp = (int) Math.ceil(amount);
             }
 
             info.giveExp(exp, expSource);
@@ -336,11 +356,9 @@ public class Party implements IParty {
      * @param message message to send
      */
     public void sendMessage(String message) {
-        for (String member : members) {
-            if (Server.isOnline(member)) {
-                Server.getPlayer(member).sendMessage(message);
-            }
-        }
+        members.stream().map(Bukkit::getOfflinePlayer)
+                .filter(OfflinePlayer::isOnline)
+                .forEach(op -> op.getPlayer().sendMessage(message));
     }
 
     /**
@@ -349,11 +367,9 @@ public class Party implements IParty {
      * @param messages messages to send
      */
     public void sendMessages(List<String> messages) {
-        for (String member : members) {
-            if (Server.isOnline(member)) {
-                Server.getPlayer(member).sendMessage(messages.toArray(new String[messages.size()]));
-            }
-        }
+        members.stream().map(Bukkit::getOfflinePlayer)
+                .filter(OfflinePlayer::isOnline)
+                .forEach(op -> op.getPlayer().sendMessage(messages.toArray(new String[messages.size()])));
     }
 
     /**
@@ -379,12 +395,16 @@ public class Party implements IParty {
     }
 
     /**
-     * Updates all of the scoreboards for the party
+     * Updates all the scoreboards for the party
      */
     public void updateBoards() {
         removeBoards();
-        for (String member : members) {
-            PartyBoardManager.applyBoard(plugin, Server.getPlayer(member));
-        }
+        members.stream().map(Bukkit::getOfflinePlayer)
+                .filter(op -> op.isOnline())
+                .forEach(op -> PartyBoardManager.applyBoard(plugin, op.getPlayer()));
+    }
+
+    void addMember(Player player) {
+        getMembers().add(player.getUniqueId());
     }
 }

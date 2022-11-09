@@ -1,8 +1,13 @@
 package com.sucy.party.inject;
 
+import com.sucy.skill.SkillAPI;
 import com.sucy.skill.api.player.PlayerClass;
 import com.sucy.skill.api.player.PlayerData;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 /**
  * Parties © 2017
@@ -13,25 +18,18 @@ import org.bukkit.entity.Player;
  */
 public class Server {
 
-    public static boolean isOnline(String playerName) {
-        return context.isOnline(playerName);
-    }
-
-    public static Player getPlayer(String playerName) {
-        return context.getPlayer(playerName);
-    }
-
     public static PlayerData getPlayerData(Player player) {
-        return context.getPlayerData(player);
+        return SkillAPI.getPlayerData(player);
     }
 
     public static PlayerClass getClass(Player player) {
         return getPlayerData(player).getMainClass();
     }
 
-    public static int getLevel(String name) {
-        if (isOnline(name)) {
-            PlayerClass playerClass = getClass(getPlayer(name));
+    public static int getLevel(UUID id) {
+        OfflinePlayer op = Bukkit.getOfflinePlayer(id);
+        if (op.isOnline()) {
+            PlayerClass playerClass = getClass(op.getPlayer());
             if (playerClass != null) {
                 return playerClass.getLevel();
             }
@@ -43,9 +41,4 @@ public class Server {
         return getPlayerData(player).hasClass();
     }
 
-    private static InjectInterface context = new InjectInterface();
-
-    static void setContext(InjectInterface injectedContext) {
-        context = injectedContext;
-    }
 }
