@@ -28,9 +28,17 @@ package com.sucy.party;
 
 import com.sucy.skill.api.enums.ExpSource;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+import java.util.UUID;
+
 public interface IParty {
+    List<UUID> getMembers();
+
+    OfflinePlayer getLeader();
+
     Player getSequentialPlayer();
 
     Player getSequentialPlayer(Location location, double radius);

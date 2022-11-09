@@ -35,12 +35,15 @@ import com.sucy.skill.api.player.PlayerClass;
 import com.sucy.skill.api.player.PlayerData;
 import mc.promcteam.engine.mccore.config.Filter;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.cyberiantiger.minecraft.instances.Party;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class InstancesParty implements IParty {
     private final Parties plugin;
@@ -58,6 +61,16 @@ public class InstancesParty implements IParty {
     }
 
     @Override
+    public List<UUID> getMembers() {
+        List<UUID> members = new ArrayList<>(party.getMembers().size());
+        for (Player member : party.getMembers()) { members.add(member.getUniqueId()); }
+        return Collections.unmodifiableList(members);
+    }
+
+    @Override
+    public OfflinePlayer getLeader() { return party.getLeader(); }
+
+    @Override
     public Player getSequentialPlayer() {
         nextId = (nextId+1)%party.getMembers().size();
         return party.getMembers().get(nextId);
@@ -73,7 +86,7 @@ public class InstancesParty implements IParty {
     @Override
     @Nullable
     public Player getSequentialPlayer(Location location, double radius) {
-        radius *= radius;
+        if (radius > 0) { radius *= radius; }
         int size = party.getMembers().size();
         for (int i = 0; i < size; i++) {
             nextId = (nextId+1)%party.getMembers().size();
@@ -99,7 +112,7 @@ public class InstancesParty implements IParty {
     @Override
     @Nullable
     public Player getRandomPlayer(Location location, double radius) {
-        radius *= radius;
+        if (radius > 0) { radius *= radius; }
         List<Player> members = new ArrayList<>(party.getMembers());
         int size = party.getMembers().size();
         for (int i = 0; i < size; i++) {

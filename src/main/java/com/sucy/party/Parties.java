@@ -2,6 +2,7 @@ package com.sucy.party;
 
 import com.sucy.party.command.*;
 import com.sucy.party.hook.Hooks;
+import com.sucy.party.hook.PlaceholderHook;
 import com.sucy.party.mccore.PartyBoardManager;
 import mc.promcteam.engine.mccore.commands.CommandManager;
 import mc.promcteam.engine.mccore.commands.ConfigurableCommand;
@@ -11,6 +12,8 @@ import mc.promcteam.engine.mccore.config.CommentedLanguageConfig;
 import mc.promcteam.engine.mccore.config.CustomFilter;
 import mc.promcteam.engine.mccore.config.FilterType;
 import mc.promcteam.engine.mccore.config.parse.DataSection;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -40,10 +43,11 @@ public class Parties extends JavaPlugin {
     private       boolean                 newLeaderOnDc;
     private       boolean                 leaderInviteOnly;
     private       boolean                 friendlyFire;
-    private boolean partyAlly;
+    private       boolean                 partyAlly;
     private       boolean                 useScoreboard;
     private       boolean                 levelScoreboard;
     private       boolean                 debug;
+    private       double                  expShareRadius;
     private       double                  expShareRadiusSq;
     private       double                  memberModifier;
     private       double                  levelModifier;
@@ -104,10 +108,8 @@ public class Parties extends JavaPlugin {
         friendlyFire = settings.getBoolean("friendly-fire", true);
         useScoreboard = settings.getBoolean("use-scoreboard", false);
         levelScoreboard = settings.getBoolean("level-scoreboard", false);
-        expShareRadiusSq = settings.getDouble("exp-modifications.radius", 0);
-        if (expShareRadiusSq > 0) {
-            expShareRadiusSq *= expShareRadiusSq;
-        }
+        expShareRadius = settings.getDouble("exp-modifications.radius", 0);
+        expShareRadiusSq = expShareRadius > 0 ? Math.pow(expShareRadius, 2) : expShareRadius;
         memberModifier = settings.getDouble("exp-modifications.members", 1.0);
         levelModifier = settings.getDouble("exp-modifications.level", 0.0);
         inviteTimeout = settings.getInt("invite-timeout", 30) * 1000L;
@@ -199,6 +201,11 @@ public class Parties extends JavaPlugin {
     }
 
     /**
+     * @return the maximum distance between party members for the exp sharing to take effect, in blocks
+     */
+    public double getExpShareRadius() { return expShareRadius; }
+
+    /**
      * @return the squared maximum distance between party members for the exp sharing to take effect, in blocks
      */
     public double getExpShareRadiusSquared() {return expShareRadiusSq;}
@@ -232,7 +239,7 @@ public class Parties extends JavaPlugin {
      * @param player player to get for
      * @return joined party
      */
-    public Party getJoinedParty(Player player) {
+    public Party getJoinedParty(OfflinePlayer player) {
         for (Party party : parties) {
             if (party.isMember(player)) {
                 return party;

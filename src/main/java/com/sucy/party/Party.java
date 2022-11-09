@@ -90,7 +90,7 @@ public class Party implements IParty {
     @Override
     @Nullable
     public Player getSequentialPlayer(Location location, double radius) {
-        radius *= radius;
+        if (radius > 0) { radius *= radius; }
         int size = members.size();
         for (int i = 0; i < size; i++) {
             nextId = (nextId + 1) % size;
@@ -129,7 +129,7 @@ public class Party implements IParty {
     @Override
     @Nullable
     public Player getRandomPlayer(Location location, double radius) {
-        radius *= radius;
+        if (radius > 0) { radius *= radius; }
         List<UUID> members = new ArrayList<>(this.members);
         int        size    = this.members.size();
         for (int i = 0; i < size; i++) {
@@ -171,8 +171,9 @@ public class Party implements IParty {
     /**
      * @return list of names of the members in the party
      */
+    @Override
     public List<UUID> getMembers() {
-        return members;
+        return Collections.unmodifiableList(members);
     }
 
     /**
@@ -194,7 +195,7 @@ public class Party implements IParty {
      * @param player player to check
      * @return true if on the team, false otherwise
      */
-    public boolean isMember(Player player) {
+    public boolean isMember(OfflinePlayer player) {
         return members.contains(player.getUniqueId());
     }
 
@@ -405,6 +406,6 @@ public class Party implements IParty {
     }
 
     void addMember(Player player) {
-        getMembers().add(player.getUniqueId());
+        members.add(player.getUniqueId());
     }
 }
