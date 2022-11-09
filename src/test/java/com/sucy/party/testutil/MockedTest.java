@@ -7,19 +7,21 @@ import com.sucy.party.Parties;
 import com.sucy.party.Party;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class MockedTest {
-    protected static ServerMock       server;
-    protected static Parties          plugin;
-    protected        Party            party;
-    protected        List<PlayerMock> players = new ArrayList<>();
+    protected ServerMock       server;
+    protected Parties          plugin;
+    protected Party            party;
+    protected List<PlayerMock> players = new ArrayList<>();
 
     @BeforeAll
-    public static void setupServer() {
+    public void setupServer() {
         server = MockBukkit.mock();
         plugin = MockBukkit.load(Parties.class);
     }
