@@ -4,7 +4,7 @@ version: 1.0-snapshot
 api-version: 1.13
 authors: [Eniripsa96, Sentropic]
 depend: [ProSkillAPI]
-softdepend: [Instances]
+softdepend: [Instances, PlaceholderAPI]
 
 permissions:
   party.general:

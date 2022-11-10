@@ -88,6 +88,10 @@ public class Parties extends JavaPlugin {
         CommandManager.registerCommand(root);
 
         Hooks.init(this);
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new PlaceholderHook(this).register();
+            getLogger().info("Hooked to PlaceholderAPI");
+        }
     }
 
     public void loadConfiguration() {

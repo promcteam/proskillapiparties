@@ -288,6 +288,8 @@ public class Party implements IParty {
                 .findFirst()
                 .ifPresent(op -> {
                     leaderId = op.getUniqueId();
+                    members.remove(leaderId);
+                    members.add(0, leaderId);
                     sendMessages(plugin.getMessage(PartyNodes.NEW_LEADER, true, Filter.PLAYER.setReplacement(op.getName())));
                 });
     }
