@@ -6,8 +6,10 @@ import com.sucy.party.event.PlayerJoinPartyEvent;
 import com.sucy.party.event.PlayerLeavePartyEvent;
 import com.sucy.party.testutil.MockedTest;
 import com.sucy.skill.api.enums.ExpSource;
+import com.sucy.skill.api.player.PlayerData;
 import org.bukkit.ChatColor;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.cyberiantiger.minecraft.instances.command.PartyLeader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,19 +18,20 @@ import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.Mockito.verify;
 
 public class PartyTest extends MockedTest {
 
     private static final Logger log = LoggerFactory.getLogger(PartyTest.class);
 
-    private PlayerMock travja, goflish;
+    private PlayerMock partyLeader, partyMember;
 
     @BeforeEach
     public void setup() {
-        travja = genPlayer("Travja");
-        goflish = genPlayer("goflish");
-        party = new Party(plugin, travja);
-        party.addMember(goflish);
+        partyLeader = genPlayer("Travja");
+        partyMember = genPlayer("goflish");
+        party = new Party(plugin, partyLeader);
+        party.addMember(partyMember);
 
         plugin.addParty(party);
     }
@@ -37,15 +40,14 @@ public class PartyTest extends MockedTest {
     public void tearDown() {
         plugin.removeParty(party);
         server.setPlayers(0);
-        players.clear();
     }
 
     @Test
     public void testPartyLeaderLeavingNewLeaderAssigned() {
-        travja.performCommand("pt leave");
-        travja.assertSaid(ChatColor.translateAlternateColorCodes('&', "&6" + travja.getName() + " &2has left the party&r"));
+        partyLeader.performCommand("pt leave");
+        partyLeader.assertSaid(ChatColor.translateAlternateColorCodes('&', "&6" + partyLeader.getName() + " &2has left the party&r"));
         assertEquals(1, party.getPartySize());
-        assertNotEquals("Travja", party.getLeader().getName());
+        assertNotEquals(partyLeader.getName(), party.getLeader().getName());
         log.info("Party ownership is properly reassigned");
     }
 
@@ -55,17 +57,17 @@ public class PartyTest extends MockedTest {
         plugin.saveConfig();
         plugin.loadConfiguration();
 
-        travja.disconnect();
+        partyLeader.disconnect();
 
         assertEventFired(PlayerQuitEvent.class);
         assertEquals(1, party.getPartySize());
-        assertNotEquals("Travja", party.getLeader().getName());
+        assertNotEquals(partyLeader.getName(), party.getLeader().getName());
         log.info("Party adjusts properly on disconnect");
     }
 
     @Test
     public void getLeader() {
-        assertEquals("Travja", party.getLeader().getName());
+        assertEquals(partyLeader.getName(), party.getLeader().getName());
     }
 
     @Test
@@ -80,7 +82,7 @@ public class PartyTest extends MockedTest {
 
     @Test
     public void removeRemovesPlayer() {
-        party.removeMember(goflish);
+        party.removeMember(partyMember);
 
         assertEventFired(PlayerLeavePartyEvent.class);
         assertEquals(1, party.getPartySize());
@@ -88,13 +90,28 @@ public class PartyTest extends MockedTest {
 
     @Test
     public void giveExp() {
-        party.giveExp(travja, 100, ExpSource.MOB);
+        party.giveExp(partyLeader, 100, ExpSource.MOB);
+        PlayerData leaderData  = activePlayerData.get(partyLeader.getUniqueId());
+        PlayerData memberData = activePlayerData.get(partyMember.getUniqueId());
 
         assertEventFired(PartyExpEvent.class, e -> {
-            if (e.getAmount() == 0)
-                return false;
+            verify(leaderData).giveExp(e.getAmount(), e.getExpSource());
+            verify(memberData).giveExp(e.getAmount(), e.getExpSource());
 
-            return true;
+            return e.getAmount() != 0;
+        });
+    }
+
+    @Test
+    public void giveExpSoloGetsAll() {
+        party.removeMember(partyMember);
+        party.giveExp(partyLeader, 100, ExpSource.MOB);
+        PlayerData leaderData  = activePlayerData.get(partyLeader.getUniqueId());
+
+        assertEventFired(PartyExpEvent.class, e -> {
+            verify(leaderData).giveExp(100, e.getExpSource());
+
+            return e.getAmount() != 0;
         });
     }
 }
