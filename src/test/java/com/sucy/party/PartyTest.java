@@ -9,7 +9,6 @@ import com.sucy.skill.api.enums.ExpSource;
 import com.sucy.skill.api.player.PlayerData;
 import org.bukkit.ChatColor;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.cyberiantiger.minecraft.instances.command.PartyLeader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
