@@ -203,10 +203,9 @@ public class PartyListener implements Listener {
     }
 
     private void shareLockItem(ItemStack itemStack) {
+        if(itemStack == null || !itemStack.hasItemMeta()) return;
+
         ItemMeta itemMeta = itemStack.getItemMeta();
-        if (itemMeta == null) {
-            return;
-        }
         itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
         itemStack.setItemMeta(itemMeta);
     }
