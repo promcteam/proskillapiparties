@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.promcteam</groupId>
         <artifactId>promc-parent</artifactId>
-        <version>1.19.4-SNAPSHOT</version>
+        <version>1.20.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>proskillapiparties</artifactId>
@@ -61,7 +61,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.seeseemelk</groupId>
-            <artifactId>MockBukkit-v1.19</artifactId>
+            <artifactId>MockBukkit-v1.20</artifactId>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
