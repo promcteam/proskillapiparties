@@ -3,6 +3,7 @@ package com.sucy.party;
 import com.sucy.party.event.PartyExpEvent;
 import com.sucy.party.event.PlayerJoinPartyEvent;
 import com.sucy.party.event.PlayerLeavePartyEvent;
+import com.sucy.party.event.PostPlayerJoinPartyEvent;
 import com.sucy.party.inject.Server;
 import com.sucy.party.lang.IndividualNodes;
 import com.sucy.party.lang.PartyNodes;
@@ -252,6 +253,8 @@ public class Party implements IParty {
                 if (leader.isOnline())
                     PartyBoardManager.applyBoard(plugin, getLeader().getPlayer());
             }
+            PostPlayerJoinPartyEvent postEvent = new PostPlayerJoinPartyEvent(this, player);
+            Bukkit.getPluginManager().callEvent(postEvent);
             PartyBoardManager.applyBoard(plugin, player);
         }
     }

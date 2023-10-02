@@ -53,6 +53,7 @@ public class Parties extends JavaPlugin {
     private       double                  levelModifier;
     private       long                    inviteTimeout;
     private       int                     maxSize;
+    private       PacketListener          packetListener;
 
     public Parties() {
         super();
@@ -70,7 +71,10 @@ public class Parties extends JavaPlugin {
         task = new UpdateTask(this);
 
         loadConfiguration();
-
+        if(Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
+            packetListener = new PacketListener(this);
+            this.getServer().getPluginManager().registerEvents(packetListener, this);
+        }
         new PartyListener(this);
 
         // Set up commands
@@ -127,6 +131,7 @@ public class Parties extends JavaPlugin {
      */
     @Override
     public void onDisable() {
+        if(packetListener!=null) packetListener.cleanup();
         task.cancel();
         PartyBoardManager.clearBoards(this);
         HandlerList.unregisterAll(this);
