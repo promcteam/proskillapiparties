@@ -195,7 +195,8 @@ public class PartyListener implements Listener {
             return false;
         }
         PersistentDataContainer nbt = meta.getPersistentDataContainer();
-        return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE) && Objects.requireNonNull(nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE)) > 0;
+        return nbt.has(SHARE_LOCK_METADATA, PersistentDataType.BYTE)
+                && Objects.requireNonNull(nbt.get(SHARE_LOCK_METADATA, PersistentDataType.BYTE)) > 0;
     }
 
     private boolean isShareLocked(Item item) {
@@ -203,7 +204,7 @@ public class PartyListener implements Listener {
     }
 
     private void shareLockItem(ItemStack itemStack) {
-        if(itemStack == null || !itemStack.hasItemMeta()) return;
+        if (itemStack == null || !itemStack.hasItemMeta()) return;
 
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.getPersistentDataContainer().set(SHARE_LOCK_METADATA, PersistentDataType.BYTE, (byte) 1);
@@ -299,10 +300,8 @@ public class PartyListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onFriendlyFire(EntityDamageByEntityEvent event) {
-        boolean intervene =
-                ((event instanceof DefaultCombatProtection.FakeEntityDamageByEntityEvent)
-                        && plugin.isPartyAllyEnabled())
-                        || !plugin.isFriendlyFireEnabled();
+        boolean intervene = (DefaultCombatProtection.isFakeDamageEvent(event) && plugin.isPartyAllyEnabled())
+                || !plugin.isFriendlyFireEnabled();
         if (!intervene) return;
 
         Entity damaged = event.getEntity();
