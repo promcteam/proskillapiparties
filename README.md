@@ -1,5 +1,5 @@
-[![Build](https://github.com/promcteam/proskillapiparties/actions/workflows/release.yml/badge.svg?branch=main)](https://s01.oss.sonatype.org/content/repositories/releases/com/promcteam/proskillapiparties/1.1.0-R0.3-SNAPSHOT)
-[![Build](https://github.com/promcteam/proskillapiparties/actions/workflows/devbuild.yml/badge.svg?branch=dev)](https://s01.oss.sonatype.org/content/repositories/snapshots/com/promcteam/proskillapiparties/1.1.0-R0.3-SNAPSHOT)
+[![Build](https://github.com/promcteam/proskillapiparties/actions/workflows/release.yml/badge.svg?branch=main)](https://s01.oss.sonatype.org/content/repositories/releases/com/promcteam/proskillapiparties/1.1.0-R0.4-SNAPSHOT)
+[![Build](https://github.com/promcteam/proskillapiparties/actions/workflows/devbuild.yml/badge.svg?branch=dev)](https://s01.oss.sonatype.org/content/repositories/snapshots/com/promcteam/proskillapiparties/1.1.0-R0.4-SNAPSHOT)
 
 # ProSkillAPIParties
 
@@ -15,6 +15,11 @@ or snapshots through Sonatype.
 <dependency>
     <groupId>com.promcteam</groupId>
     <artifactId>proskillapiparties</artifactId>
-    <version>1.1.0-R0.3-SNAPSHOT</version>
+    <version>1.1.0-R0.4-SNAPSHOT</version>
 </dependency>
 ```
+
+### A huge thanks to our contributors
+<a href="https://github.com/promcteam/proskillapiparties/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=promcteam/proskillapiparties" />
+</a>
