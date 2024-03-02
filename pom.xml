@@ -76,6 +76,12 @@
             <artifactId>proskillapi</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>4.8.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.cyberiantiger.minecraft</groupId>
             <artifactId>instances</artifactId>
             <version>1.24</version>
