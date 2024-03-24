@@ -10,12 +10,12 @@
         <version>1.20.4-SNAPSHOT</version>
     </parent>
 
-    <artifactId>proskillapiparties</artifactId>
-    <version>1.1.0-R0.5-SNAPSHOT</version>
+    <artifactId>fabled-parties</artifactId>
+    <version>1.0.0-R0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>ProSkillAPIParties</name>
-    <description>A Parties extension for ProSkillAPI</description>
+    <name>FabledParties</name>
+    <description>A Parties extension for Fabled</description>
     <url>https://github.com/promcteam/proskillapiparties</url>
 
     <properties>
@@ -24,7 +24,6 @@
     </properties>
 
     <build>
-        <directory>${java.io.tmpdir}/maven-target/</directory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -69,11 +68,11 @@
         </dependency>
         <dependency>
             <groupId>com.promcteam</groupId>
-            <artifactId>promccore</artifactId>
+            <artifactId>codex</artifactId>
         </dependency>
         <dependency>
             <groupId>com.promcteam</groupId>
-            <artifactId>proskillapi</artifactId>
+            <artifactId>fabled</artifactId>
         </dependency>
         <dependency>
             <groupId>org.cyberiantiger.minecraft</groupId>
@@ -85,7 +84,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>23.0.0</version>
+            <version>24.1.0</version>
             <scope>provided</scope>
         </dependency>
 

@@ -1,11 +1,11 @@
-name: ProSkillAPIParties
-main: com.sucy.party.Parties
-version: 1.0-snapshot
+name: ${project.name}
+main: com.promcteam.fabled.parties.FabledParties
+version: ${project.version}
 api-version: 1.13
-authors: [Eniripsa96, Sentropic]
-depend: [ProSkillAPI]
-softdepend: [Instances, PlaceholderAPI]
+authors: [ Eniripsa96, Sentropic, ProMCTeam ]
+depend: [ Fabled ]
+softdepend: [ Instances, PlaceholderAPI ]
 
 permissions:
-  party.general:
+  fabled.party.general:
     default: true
