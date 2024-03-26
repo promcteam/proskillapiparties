@@ -1,8 +1,8 @@
 package com.promcteam.fabled.parties.command;
 
-import com.promcteam.fabled.parties.FabledParties;
 import com.promcteam.codex.mccore.commands.ConfigurableCommand;
 import com.promcteam.codex.mccore.commands.IFunction;
+import com.promcteam.fabled.parties.FabledParties;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

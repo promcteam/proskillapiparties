@@ -1,7 +1,7 @@
 package com.promcteam.fabled.parties.hook;
 
-import com.promcteam.fabled.parties.IParty;
 import com.promcteam.fabled.parties.FabledParties;
+import com.promcteam.fabled.parties.IParty;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;

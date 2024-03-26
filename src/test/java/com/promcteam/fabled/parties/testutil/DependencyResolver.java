@@ -1,7 +1,6 @@
 package com.promcteam.fabled.parties.testutil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.*;
 import java.net.URL;
@@ -9,8 +8,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Log4j2
 public class DependencyResolver {
-    private static Logger       log          = LoggerFactory.getLogger(DependencyResolver.class);
     private static List<String> repositories = List.of("https://s01.oss.sonatype.org/content/repositories/snapshots/");
 
     public static File resolve(String dependency) throws FileNotFoundException {

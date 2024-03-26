@@ -9,15 +9,10 @@ import com.promcteam.fabled.api.player.PlayerData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.mockito.Mockito.*;
 
 public class EventsTest extends MockedTest {
-
-    private static final Logger log = LoggerFactory.getLogger(EventsTest.class);
-
     private PlayerMock partyLeader, partyMember;
 
     @BeforeEach

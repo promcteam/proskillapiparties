@@ -26,8 +26,8 @@
  */
 package com.promcteam.fabled.parties.hook;
 
-import com.promcteam.fabled.parties.IParty;
 import com.promcteam.fabled.parties.FabledParties;
+import com.promcteam.fabled.parties.IParty;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

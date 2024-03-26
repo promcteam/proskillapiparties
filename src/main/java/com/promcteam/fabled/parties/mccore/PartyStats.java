@@ -1,9 +1,9 @@
 package com.promcteam.fabled.parties.mccore;
 
+import com.promcteam.codex.mccore.scoreboard.StatHolder;
 import com.promcteam.fabled.parties.FabledParties;
 import com.promcteam.fabled.parties.Party;
 import com.promcteam.fabled.parties.inject.Server;
-import com.promcteam.codex.mccore.scoreboard.StatHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;

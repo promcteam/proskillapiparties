@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 /**
- * Parties © 2023
+ * Parties © 2024
  * inject.com.promcteam.fabled.parties.Server
  * <p>
  * Wrapper around static methods than can have alternate implementations

@@ -7,22 +7,19 @@ import com.promcteam.fabled.parties.event.PlayerJoinPartyEvent;
 import com.promcteam.fabled.parties.event.PlayerLeavePartyEvent;
 import com.promcteam.fabled.api.enums.ExpSource;
 import com.promcteam.fabled.api.player.PlayerData;
+import lombok.extern.log4j.Log4j2;
 import org.bukkit.ChatColor;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.verify;
 
+@Log4j2
 public class PartyTest extends MockedTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PartyTest.class);
 
     private PlayerMock partyLeader, partyMember;
 

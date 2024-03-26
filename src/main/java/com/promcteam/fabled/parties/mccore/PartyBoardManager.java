@@ -1,10 +1,10 @@
 package com.promcteam.fabled.parties.mccore;
 
-import com.promcteam.fabled.parties.FabledParties;
-import com.promcteam.fabled.parties.lang.PartyNodes;
 import com.promcteam.codex.mccore.scoreboard.BoardManager;
 import com.promcteam.codex.mccore.scoreboard.PlayerBoards;
 import com.promcteam.codex.mccore.scoreboard.StatBoard;
+import com.promcteam.fabled.parties.FabledParties;
+import com.promcteam.fabled.parties.lang.PartyNodes;
 import org.bukkit.entity.Player;
 
 /**

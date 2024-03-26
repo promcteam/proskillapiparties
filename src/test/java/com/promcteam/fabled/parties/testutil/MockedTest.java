@@ -11,6 +11,7 @@ import com.promcteam.fabled.api.enums.ExpSource;
 import com.promcteam.fabled.api.player.PlayerClass;
 import com.promcteam.fabled.api.player.PlayerData;
 import com.promcteam.codex.mccore.commands.CommandManager;
+import lombok.extern.log4j.Log4j2;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.junit.jupiter.api.AfterAll;
@@ -19,8 +20,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -30,9 +29,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Log4j2
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class MockedTest {
-    private   Logger                log              = LoggerFactory.getLogger(MockedTest.class);
     protected ServerMock            server;
     protected FabledParties         plugin;
     protected Party                 party;

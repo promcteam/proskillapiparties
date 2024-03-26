@@ -1,11 +1,11 @@
 package com.promcteam.fabled.parties.command;
 
+import com.promcteam.codex.mccore.commands.ConfigurableCommand;
+import com.promcteam.codex.mccore.commands.IFunction;
 import com.promcteam.fabled.parties.FabledParties;
 import com.promcteam.fabled.parties.Party;
 import com.promcteam.fabled.parties.event.PartyMsgEvent;
 import com.promcteam.fabled.parties.lang.ErrorNodes;
-import com.promcteam.codex.mccore.commands.ConfigurableCommand;
-import com.promcteam.codex.mccore.commands.IFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
